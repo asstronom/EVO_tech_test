@@ -3,6 +3,7 @@ package db
 import (
 	"context"
 
+	"github.com/asstronom/EVO_tech_test/pkg/domain"
 	"github.com/jackc/pgx/v4/pgxpool"
 )
 
@@ -24,4 +25,20 @@ func Open(ctx context.Context, url string) (*TransactionDB, error) {
 
 func (db *TransactionDB) Close() {
 	db.pool.Close()
+}
+
+func (db *TransactionDB) InsertTransaction(ctx context.Context, trx domain.Transaction) error {
+	_, err := db.pool.Exec(ctx, `INSERT INTO transactions (id, requestid, terminalid, partnerobjectid,
+		 amounttotal, amountoriginal, commisionps, commisionclient, commisionprovider,
+		 dateinput, datepost, statusid, paymenttype, paymentnumber, serviceid,
+		 servicetypeid, payeeid, payeenameid, payeebankmfo, payeebankaccount, paymentnarrativeid)
+		 VALUES ($1, $2, $3, $3, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21)`,
+		trx.ID, trx.RequestID, trx.TerminalID, trx.PartnerObjectID, trx.AmountTotal, trx.AmountOriginal, trx.CommisionPs, trx.CommisionClient, trx.CommisionProvider,
+		trx.DateInput, trx.DatePost, trx.Status, trx.PaymentType, trx.PaymentNumber, trx.ServiceID, trx.Service, trx.PayeeID, trx.PayeeName, trx.PayeeBankMfo,
+		trx.PayeeBankAccount, trx.PaymentNarrative,
+	)
+	if err != nil {
+		return err
+	}
+	return nil
 }
