@@ -17,7 +17,7 @@ CREATE TABLE IF NOT EXISTS PaymentNarratives (
     title VARCHAR(255) UNIQUE
 );
 
-CREATE TABLE IF NOT EXISTS Transcations (
+CREATE TABLE IF NOT EXISTS Transactions (
     id serial primary key,
     requestid INT,
     terminalid INT,

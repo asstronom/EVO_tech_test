@@ -1,4 +1,4 @@
-Drop TABLE IF EXISTS Transcations;
+Drop TABLE IF EXISTS Transactions;
 
 Drop TABLE IF EXISTS ServiceTypes;
 
