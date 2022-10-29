@@ -17,7 +17,7 @@ type Transaction struct {
 	Status            string
 	PaymentType       string
 	PaymentNumber     string
-	ServiceID         string
+	ServiceID         int
 	Service           string
 	PayeeID           int
 	PayeeName         string
