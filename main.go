@@ -1,6 +1,23 @@
 package main
 
+import (
+	"context"
+	"log"
+
+	"github.com/asstronom/EVO_tech_test/pkg/db"
+	"github.com/asstronom/EVO_tech_test/pkg/migratedb"
+)
 
 func main() {
-	
+	var err error
+	dburl := "postgres://user:mypassword@localhost:5432/transactions"
+	migrateurl := "postgres://user:mypassword@localhost:5432/transactions?sslmode=disable"
+	err = migratedb.MigrateUp(migrateurl)
+	if err != nil {
+		log.Fatalln(err)
+	}
+	_, err = db.Open(context.Background(), dburl)
+	if err != nil {
+		log.Fatalln(err)
+	}
 }
