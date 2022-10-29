@@ -2,6 +2,7 @@ package db
 
 import (
 	"context"
+	"fmt"
 	"testing"
 	"time"
 
@@ -47,4 +48,16 @@ func TestInsertSingleTransaction(t *testing.T) {
 	if err != nil {
 		t.Errorf("error while inserting: %s", err)
 	}
+}
+
+func TestGetTransactionById(t *testing.T) {
+	db, err := Open(context.Background(), dburl)
+	if err != nil {
+		t.Errorf("error opening db: %s", err)
+	}
+	res, err := db.GetTransactionByID(context.Background(), 1)
+	if err != nil {
+		t.Errorf("error getting trx: %s", err)
+	}
+	fmt.Print(res)
 }
