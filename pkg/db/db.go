@@ -43,3 +43,46 @@ func (db *TransactionDB) InsertTransaction(ctx context.Context, trx domain.Trans
 	}
 	return nil
 }
+
+func (db *TransactionDB) GetTransactionByID(ctx context.Context, id int) (*domain.Transaction, error) {
+
+	row := db.pool.QueryRow(ctx, 
+		`WITH transaction AS(
+		SELECT id, requestid, terminalid, partnerobjectid,
+		amounttotal, amountoriginal, commisionps, commisionclient, commisionprovider,
+		dateinput, datepost, statusid, paymenttype, paymentnumber, serviceid,
+		servicetypeid, payeeid, payeenameid, payeebankmfo, payeebankaccount, paymentnarrativeid
+		FROM transactions
+		WHERE id = $1)
+		
+		WITH narrative AS (
+			SELECT title 
+			FROM paymentnarratives
+			INNER JOIN transaction
+			ON paymentnarratives.id = transaction.paymentnarrativeid
+		)
+
+		WITH servicetype AS (
+			SELECT title FROM servicetypes
+			INNER JOIN transaction
+			ON servicetypes.id = transaction.servicetypeid
+		)
+
+		WITH payeename AS (
+			SELECT title FROM payeenames
+			INNER JOIN transaction
+			ON payeenames.id = transaction.payeenameid
+		)
+
+		SELECT transaction.id, transaction.requestid, transaction.terminalid, transaction.partnerobjectid,
+		transaction.amounttotal, transaction.amountoriginal, transaction.commisionps, transaction.commisionclient, transaction.commisionprovider,
+		transaction.dateinput, transaction.datepost, transaction.statusid, transaction.paymenttype, transaction.paymentnumber, transaction.serviceid,
+		servicetype.title, transaction.payeeid, payeename.title, transaction.payeebankmfo, transaction.payeebankaccount, narrative.title
+	`, id)
+	var result domain.Transaction
+	err := row.Scan(&result)
+	if err != nil {
+		return nil, err
+	}
+	return &result, nil
+}
