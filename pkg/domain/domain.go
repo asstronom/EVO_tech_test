@@ -22,6 +22,6 @@ type Transaction struct {
 	PayeeID           int
 	PayeeName         string
 	PayeeBankMfo      int
-	PayeeBankAccount  int
+	PayeeBankAccount  string
 	PaymentNarrative  string
 }
