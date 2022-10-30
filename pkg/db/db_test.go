@@ -59,5 +59,5 @@ func TestGetTransactionById(t *testing.T) {
 	if err != nil {
 		t.Errorf("error getting trx: %s", err)
 	}
-	fmt.Print(res)
+	fmt.Printf("%#v\n", res)
 }
