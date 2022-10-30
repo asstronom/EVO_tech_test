@@ -3,7 +3,9 @@ package db
 import (
 	"context"
 	"fmt"
+	"strings"
 
+	sq "github.com/Masterminds/squirrel"
 	"github.com/asstronom/EVO_tech_test/pkg/domain"
 	"github.com/jackc/pgx/v4"
 	"github.com/jackc/pgx/v4/pgxpool"
@@ -117,4 +119,86 @@ func (db *TransactionDB) GetTransactionByID(ctx context.Context, id int) (*domai
 	}
 	bres.Close()
 	return &result, nil
+}
+
+func (db *TransactionDB) GetTransactions(ctx context.Context, filters map[string]interface{}) ([]domain.Transaction, error) {
+	build := sq.StatementBuilder.PlaceholderFormat(sq.Dollar)
+	trxs := build.Select(`transactions.id, transactions.requestid, transactions.terminalid,
+	transactions.partnerobjectid, transactions.amounttotal, transactions.amountoriginal,
+	transactions.commisionps, transactions.commisionclient, transactions.commisionprovider,
+	transactions.dateinput, transactions.datepost, transactions.statusid,
+	transactions.paymenttype, transactions.paymentnumber, transactions.serviceid,
+	transactions.servicetypeid, transactions.payeeid, transactions.payeenameid, 
+	transactions.payeebankmfo, transactions.payeebankaccount, transactions.paymentnarrativeid`).
+		From("transactions")
+
+	if terminal_ids, ok := filters["terminal_ids"]; ok {
+		ids, ok := terminal_ids.([]interface{})
+		if !ok {
+			return nil, fmt.Errorf("wrong type for terminal_ids filter")
+		}
+		if len(ids) > 0 {
+			bb := strings.Builder{}
+			bb.WriteString("(" + "?")
+			for i := 1; i < len(ids); i++ {
+				bb.WriteString(", " + "?")
+			}
+			bb.WriteString(")")
+			trxs = trxs.Where("terminalid IN "+bb.String(), ids...)
+		}
+	}
+	if status, ok := filters["status"]; ok {
+		trxs = trxs.Where("statusid = ?", status)
+	}
+	if payment_type, ok := filters["payment_type"]; ok {
+		trxs = trxs.Where("paymenttype = ?", payment_type)
+	}
+	if date_from, ok := filters["date_post_from"]; ok {
+		trxs = trxs.Where("datepost >= ?", date_from)
+	}
+	if date_to, ok := filters["date_post_to"]; ok {
+		trxs = trxs.Where("datepost <= ?", date_to)
+	}
+	if payment_narrative, ok := filters["payment_narrative"]; ok {
+		trxs = trxs.InnerJoin("paymentnarratives ON transactions.paymentnarrativeid = paymentnarratives.id").
+			Where("paymentnarratives.title LIKE ?", payment_narrative)
+	}
+
+	sql, args, err := trxs.ToSql()
+	if err != nil {
+		return nil, err
+	}
+	fmt.Println(sql)
+	fmt.Println(args)
+
+	// withClause := `WITH trxs AS (` + sql + `)` + "\n"
+	// selectClause := `SELECT 
+	// trxs.id, trxs.requestid, trxs.terminalid,
+	// trxs.partnerobjectid, trxs.amounttotal, trxs.amountoriginal,
+	// trxs.commisionps, trxs.commisionclient, trxs.commisionprovider,
+	// trxs.dateinput, trxs.datepost, trxs.statusid,
+	// trxs.paymenttype, trxs.paymentnumber, trxs.serviceid,
+	// servicetypes.title, trxs.payeeid, payeenames.title, 
+	// trxs.payeebankmfo, trxs.payeebankaccount, paymentnarratives.title
+	// FROM payeenames
+	// INNER JOIN trxs
+	// ON trxs.payeenameid = payeenames.id
+	// INNER JOIN paymentnarratives
+	// ON paymentnarratives.id = trxs.paymentnarrativeid
+	// INNER JOIN servicetypes
+	// ON trxs.servicetypeid = servicetypes.id`
+
+	// fmt.Println(withClause + selectClause)
+
+	rows, err := db.pool.Query(ctx, sql, args...)
+	if err != nil {
+		return nil, err
+	}
+	result := []domain.Transaction{}
+	for rows.Next() {
+		cur := domain.Transaction{}
+		rows.Scan(&cur.ID)
+		result = append(result, cur)
+	}
+	return result, nil
 }
