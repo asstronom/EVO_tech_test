@@ -56,7 +56,7 @@ func (db *TransactionDB) InsertTransactions(ctx context.Context, trxs []domain.T
 	}
 	for i := 0; i < pages; i++ {
 		b := pgx.Batch{}
-		for j := 0; j < 100 || j+i*100 < len(trxs); j++ {
+		for j := 0; j < 100 && j+i*100 < len(trxs); j++ {
 			trx := trxs[i*100+j]
 			b.Queue(`INSERT INTO transactions (id, requestid, terminalid, partnerobjectid,
 		 amounttotal, amountoriginal, commisionps, commisionclient, commisionprovider,
