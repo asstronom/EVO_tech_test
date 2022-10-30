@@ -46,41 +46,44 @@ func (db *TransactionDB) InsertTransaction(ctx context.Context, trx domain.Trans
 
 func (db *TransactionDB) GetTransactionByID(ctx context.Context, id int) (*domain.Transaction, error) {
 
-	row := db.pool.QueryRow(ctx, 
-		`WITH transaction AS(
-		SELECT id, requestid, terminalid, partnerobjectid,
-		amounttotal, amountoriginal, commisionps, commisionclient, commisionprovider,
-		dateinput, datepost, statusid, paymenttype, paymentnumber, serviceid,
-		servicetypeid, payeeid, payeenameid, payeebankmfo, payeebankaccount, paymentnarrativeid
-		FROM transactions
-		WHERE id = $1)
-		
-		WITH narrative AS (
-			SELECT title 
-			FROM paymentnarratives
-			INNER JOIN transaction
-			ON paymentnarratives.id = transaction.paymentnarrativeid
-		)
-
-		WITH servicetype AS (
-			SELECT title FROM servicetypes
-			INNER JOIN transaction
-			ON servicetypes.id = transaction.servicetypeid
-		)
-
-		WITH payeename AS (
-			SELECT title FROM payeenames
-			INNER JOIN transaction
-			ON payeenames.id = transaction.payeenameid
-		)
-
-		SELECT transaction.id, transaction.requestid, transaction.terminalid, transaction.partnerobjectid,
-		transaction.amounttotal, transaction.amountoriginal, transaction.commisionps, transaction.commisionclient, transaction.commisionprovider,
-		transaction.dateinput, transaction.datepost, transaction.statusid, transaction.paymenttype, transaction.paymentnumber, transaction.serviceid,
-		servicetype.title, transaction.payeeid, payeename.title, transaction.payeebankmfo, transaction.payeebankaccount, narrative.title
-	`, id)
+func (db *TransactionDB) GetTransactionByID(ctx context.Context, id int) (*domain.Transaction, error) {
+	b := pgx.Batch{}
+	b.Queue(`SELECT id, requestid, terminalid, partnerobjectid,
+	amounttotal, amountoriginal, commisionps, commisionclient, commisionprovider,
+	dateinput, datepost, statusid, paymenttype, paymentnumber, serviceid, payeeid, payeebankmfo, payeebankaccount
+	FROM transactions
+	WHERE id = $1`, id)
+	b.Queue(`WITH payeenameid AS (SELECT payeenameid FROM transactions WHERE id = $1)
+	SELECT title FROM payeenames, payeenameid WHERE payeenames.id = payeenameid`, id)
+	b.Queue(`WITH narrativeid AS (SELECT paymentnarrativeid AS narrativeid FROM transactions WHERE id = $1)
+	SELECT title FROM paymentnarratives, narrativeid WHERE paymentnarratives.id = narrativeid`, id)
+	b.Queue(`WITH servicetypeid AS (SELECT servicetypeid FROM transactions WHERE id = $1)
+	SELECT title FROM servicetypes, servicetypeid WHERE servicetypes.id = servicetypeid`, id)
+	bres := db.pool.SendBatch(ctx, &b)
 	var result domain.Transaction
-	err := row.Scan(&result)
+	row := bres.QueryRow()
+	err := row.Scan(&result.ID, &result.RequestID, &result.TerminalID, &result.PartnerObjectID, &result.AmountTotal,
+		&result.AmountOriginal, &result.CommisionPs, &result.CommisionClient, &result.CommisionProvider, &result.DateInput,
+		&result.DatePost, &result.Status, &result.PaymentType, &result.PaymentNumber, &result.ServiceID, &result.PayeeID,
+		&result.PayeeBankMfo, &result.PayeeBankAccount,
+	)
+	if err != nil {
+		return nil, err
+	}
+	row = bres.QueryRow()
+	err = row.Scan(&result.PayeeName)
+	if err != nil {
+		return nil, err
+	}
+
+	row = bres.QueryRow()
+	err = row.Scan(&result.PaymentNarrative)
+	if err != nil {
+		return nil, err
+	}
+
+	row = bres.QueryRow()
+	err = row.Scan(&result.Service)
 	if err != nil {
 		return nil, err
 	}
