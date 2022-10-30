@@ -2,8 +2,10 @@ package db
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/asstronom/EVO_tech_test/pkg/domain"
+	"github.com/jackc/pgx/v4"
 	"github.com/jackc/pgx/v4/pgxpool"
 )
 
@@ -44,7 +46,33 @@ func (db *TransactionDB) InsertTransaction(ctx context.Context, trx domain.Trans
 	return nil
 }
 
-func (db *TransactionDB) GetTransactionByID(ctx context.Context, id int) (*domain.Transaction, error) {
+func (db *TransactionDB) InsertTransactions(ctx context.Context, trxs []domain.Transaction) error {
+	if trxs == nil {
+		return fmt.Errorf("trxs is nil")
+	}
+	pages := len(trxs) / 100
+	if pages == 0 {
+		pages = 1
+	}
+	for i := 0; i < pages; i++ {
+		b := pgx.Batch{}
+		for j := 0; j < 100 || j+i*100 < len(trxs); j++ {
+			trx := trxs[i*100+j]
+			b.Queue(`INSERT INTO transactions (id, requestid, terminalid, partnerobjectid,
+		 amounttotal, amountoriginal, commisionps, commisionclient, commisionprovider,
+		 dateinput, datepost, statusid, paymenttype, paymentnumber, serviceid,
+		 servicetypeid, payeeid, payeenameid, payeebankmfo, payeebankaccount, paymentnarrativeid)
+		 VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, (SELECT id FROM servicetypes WHERE title=$16),
+		 $17, (SELECT id FROM payeenames WHERE title=$18), $19, $20, (SELECT id FROM paymentnarratives WHERE title=$21))`,
+				trx.ID, trx.RequestID, trx.TerminalID, trx.PartnerObjectID, trx.AmountTotal, trx.AmountOriginal, trx.CommisionPs, trx.CommisionClient, trx.CommisionProvider,
+				trx.DateInput, trx.DatePost, trx.Status, trx.PaymentType, trx.PaymentNumber, trx.ServiceID, trx.Service, trx.PayeeID, trx.PayeeName, trx.PayeeBankMfo,
+				trx.PayeeBankAccount, trx.PaymentNarrative)
+		}
+		bres := db.pool.SendBatch(ctx, &b)
+		bres.Close()
+	}
+	return nil
+}
 
 func (db *TransactionDB) GetTransactionByID(ctx context.Context, id int) (*domain.Transaction, error) {
 	b := pgx.Batch{}
@@ -87,5 +115,6 @@ func (db *TransactionDB) GetTransactionByID(ctx context.Context, id int) (*domai
 	if err != nil {
 		return nil, err
 	}
+	bres.Close()
 	return &result, nil
 }
