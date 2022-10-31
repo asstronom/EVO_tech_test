@@ -4,7 +4,6 @@ import (
 	"encoding/csv"
 	"fmt"
 	"io"
-	"os"
 	"strconv"
 	"strings"
 	"time"
@@ -143,7 +142,7 @@ func recordToTransaction(record []string) (*domain.Transaction, error) {
 	return &trx, nil
 }
 
-func ParseCSVFile(file *os.File) ([]domain.Transaction, error) {
+func ParseCSVFile(file io.Reader) ([]domain.Transaction, error) {
 	r := csv.NewReader(file)
 	columns, err := r.Read()
 	fmt.Println(columns)
