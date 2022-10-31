@@ -3,6 +3,7 @@ package server
 import (
 	"fmt"
 
+	"github.com/asstronom/EVO_tech_test/pkg/parse"
 	"github.com/gin-gonic/gin"
 )
 
@@ -23,7 +24,8 @@ func (s *Server) Run(port string) error {
 }
 
 func initEndpoints(router *gin.Engine) {
-	router.GET("/transaction/:id", getTransactionByID)
+	router.GET("/transactions/:id", getTransactionByID)
+	router.GET("/transactions", getTransactions)
 }
 
 func NewServer() (*Server, error) {
