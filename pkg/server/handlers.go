@@ -11,7 +11,7 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-func getTransactions(c *gin.Context) {
+func (srv *Server) getTransactions(c *gin.Context) {
 	filters := make(map[string]interface{}, 5)
 	terminal_ids, ok := c.GetQuery("terminal_ids")
 	if ok {
@@ -60,7 +60,7 @@ func getTransactions(c *gin.Context) {
 	c.JSON(http.StatusOK, filters)
 }
 
-func getTransactionByID(c *gin.Context) {
+func (srv *Server) getTransactionByID(c *gin.Context) {
 	id, err := strconv.Atoi(c.Param("id"))
 	if err != nil {
 		if errors.Is(err, strconv.ErrSyntax) {

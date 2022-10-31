@@ -3,12 +3,14 @@ package server
 import (
 	"fmt"
 
+	"github.com/asstronom/EVO_tech_test/pkg/db"
 	"github.com/asstronom/EVO_tech_test/pkg/parse"
 	"github.com/gin-gonic/gin"
 )
 
 type Server struct {
 	router *gin.Engine
+	db     *db.TransactionDB
 }
 
 func (s *Server) Run(port string) error {
@@ -23,13 +25,14 @@ func (s *Server) Run(port string) error {
 	return nil
 }
 
-func initEndpoints(router *gin.Engine) {
-	router.GET("/transactions/:id", getTransactionByID)
-	router.GET("/transactions", getTransactions)
+func (srv *Server) initEndpoints(router *gin.Engine) {
+	router.GET("/transactions/:id", srv.getTransactionByID)
+	router.GET("/transactions", srv.getTransactions)
 }
 
-func NewServer() (*Server, error) {
+func NewServer(db *db.TransactionDB) (*Server, error) {
 	router := gin.Default()
-	initEndpoints(router)
-	return &Server{router: router}, nil
+	srv := Server{router: router, db: db}
+	srv.initEndpoints(router)
+	return &srv, nil
 }
