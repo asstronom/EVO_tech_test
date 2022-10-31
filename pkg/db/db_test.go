@@ -117,3 +117,35 @@ func TestParseAndInsertCSVFile(t *testing.T) {
 		t.Errorf("error inserting many transactions")
 	}
 }
+
+func TestGetTransactionsWithFilters(t *testing.T) {
+	db, err := Open(context.Background(), dburl)
+	if err != nil {
+		t.Errorf("error opening db: %s", err)
+	}
+	date_from, err := parse.ParseDate("2022-08-17 12:53:44")
+	if err != nil {
+		t.Errorf("error parsing date_from: %s", err)
+	}
+	date_to, err := parse.ParseDate("2022-08-17 14:25:27")
+	if err != nil {
+		t.Errorf("error parsing date_to: %s", err)
+	}
+	fmt.Println(date_from, date_to)
+	filters := map[string]interface{}{
+		//"terminal_ids":      []interface{}{3506, 3508, 3511, 3515},
+		//"status":       "accepted",
+		//"payment_type": "card",
+		//"date_post_from":    date_from,
+		//"date_post_to":      date_to,
+		//"payment_narrative": "27122",
+	}
+	trxs, err := db.GetTransactions(context.Background(), filters)
+	if err != nil {
+		t.Errorf("error getting transactions with filters: %s", err)
+	}
+	fmt.Println("len:", len(trxs))
+	for i := range trxs {
+		fmt.Println(trxs[i])
+	}
+}

@@ -121,9 +121,9 @@ func (db *TransactionDB) GetTransactionByID(ctx context.Context, id int) (*domai
 	return &result, nil
 }
 
-func (db *TransactionDB) GetTransactions(filters map[string]interface{}) ([]domain.Transaction, error) {
+func (db *TransactionDB) GetTransactions(ctx context.Context, filters map[string]interface{}) ([]domain.Transaction, error) {
 	build := sq.StatementBuilder.PlaceholderFormat(sq.Dollar)
-	sqltrx := build.Select(`id, requestid, terminalid, partnerobjectid,
+	sqltrx := build.Select(`transactions.id, requestid, terminalid, partnerobjectid,
 	amounttotal, amountoriginal, commisionps, commisionclient, commisionprovider,
 	dateinput, datepost, statusid, paymenttype, paymentnumber, serviceid, servicetypeid, payeeid,
 	payeenameid, payeebankmfo, payeebankaccount, paymentnarrativeid`).From("transactions")
@@ -143,10 +143,10 @@ func (db *TransactionDB) GetTransactions(filters map[string]interface{}) ([]doma
 		}
 	}
 	if status, ok := filters["status"]; ok {
-		sqltrx = sqltrx.Where("status = ?", status)
+		sqltrx = sqltrx.Where("statusid = ?", status)
 	}
 	if payment_type, ok := filters["payment_type"]; ok {
-		sqltrx = sqltrx.Where("status = ?", payment_type)
+		sqltrx = sqltrx.Where("paymenttype = ?", payment_type)
 	}
 	if date_from, ok := filters["date_post_from"]; ok {
 		sqltrx = sqltrx.Where("datepost >= ?", date_from)
@@ -155,7 +155,7 @@ func (db *TransactionDB) GetTransactions(filters map[string]interface{}) ([]doma
 		sqltrx = sqltrx.Where("datepost <= ?", date_to)
 	}
 	if payment_narrative, ok := filters["payment_narrative"]; ok {
-		sqltrx = sqltrx.Join("paymentnarratives ON transactions.id = paymentnarratives.id").Where("paymentnarratives.title LIKE ?", payment_narrative)
+		sqltrx = sqltrx.Join("paymentnarratives ON transactions.paymentnarrativeid = paymentnarratives.id").Where("paymentnarratives.title LIKE ?", "%"+payment_narrative.(string)+"%")
 	}
 	sql, args, err := sqltrx.ToSql()
 	if err != nil {
@@ -164,7 +164,36 @@ func (db *TransactionDB) GetTransactions(filters map[string]interface{}) ([]doma
 	fmt.Println(sql)
 	fmt.Println(args)
 
+	withClause := "WITH t AS (\n" + sql + "\n)\n"
 
+	selectClause := `SELECT t.id, t.requestid, t.terminalid, t.partnerobjectid,
+	t.amounttotal, t.amountoriginal, t.commisionps, t.commisionclient, t.commisionprovider,
+	t.dateinput, t.datepost, t.statusid, t.paymenttype, t.paymentnumber, t.serviceid, servicetypes.title, t.payeeid,
+	payeenames.title, payeebankmfo, payeebankaccount, paymentnarratives.title FROM servicetypes
+	INNER JOIN t
+	ON t.servicetypeid = servicetypes.id
+	INNER JOIN payeenames
+	ON t.payeenameid = payeenames.id
+	INNER JOIN paymentnarratives
+	ON t.paymentnarrativeid = paymentnarratives.id`
 
-	return nil, nil
+	rows, err := db.pool.Query(ctx, withClause+selectClause, args...)
+	if err != nil {
+		return nil, fmt.Errorf("error querying db: %w", err)
+	}
+	result := make([]domain.Transaction, 0, 10)
+	for rows.Next() {
+		cur := domain.Transaction{}
+		err = rows.Scan(
+			&cur.ID, &cur.RequestID, &cur.TerminalID, &cur.PartnerObjectID, &cur.AmountTotal,
+			&cur.AmountOriginal, &cur.CommisionPs, &cur.CommisionClient, &cur.CommisionProvider, &cur.DateInput,
+			&cur.DatePost, &cur.Status, &cur.PaymentType, &cur.PaymentNumber, &cur.ServiceID, &cur.Service, &cur.PayeeID,
+			&cur.PayeeName, &cur.PayeeBankMfo, &cur.PayeeBankAccount, &cur.PaymentNarrative,
+		)
+		result = append(result, cur)
+		if err != nil {
+			return nil, fmt.Errorf("error scanning row: %w", err)
+		}
+	}
+	return result, nil
 }
