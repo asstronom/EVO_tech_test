@@ -167,3 +167,23 @@ func ParseCSVFile(file *os.File) ([]domain.Transaction, error) {
 	}
 	return res, nil
 }
+
+func ValidatePort(port string) error {
+	if len(port) == 0 {
+		return fmt.Errorf("port is empty")
+	}
+	if port[0] != ':' {
+		return fmt.Errorf(`wrong port, first character is not ":"`)
+	}
+	if len(port) < 2 {
+		return fmt.Errorf("port number is not specified")
+	}
+	n, err := strconv.Atoi(port[1:])
+	if err != nil {
+		return fmt.Errorf("error port number: %w", err)
+	}
+	if n < 1 || n > 65535 {
+		return fmt.Errorf("port number is not in range 1-65535")
+	}
+	return nil
+}
