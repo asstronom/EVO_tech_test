@@ -13,7 +13,7 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-func (srv *Server) getTransactions(c *gin.Context) {
+func (srv *Server) transactions(c *gin.Context) {
 	filters := make(map[string]interface{}, 5)
 	terminal_ids, ok := c.GetQuery("terminal_ids")
 	if ok {
