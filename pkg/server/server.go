@@ -11,7 +11,11 @@ type Server struct {
 }
 
 func (s *Server) Run(port string) error {
-	err := s.router.Run(port)
+	err := parse.ValidatePort(port)
+	if err != nil {
+		return fmt.Errorf("bad port number: %w", err)
+	}
+	err = s.router.Run(port)
 	if err != nil {
 		return fmt.Errorf("error running router: %w", err)
 	}
