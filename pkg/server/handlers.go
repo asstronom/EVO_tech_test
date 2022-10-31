@@ -31,10 +31,17 @@ func (srv *Server) getTransactions(c *gin.Context) {
 	}
 	status, ok := c.GetQuery("status")
 	if ok {
+		if status != "accepted" && status != "declined" {
+			c.String(http.StatusBadRequest, "bad status filter")
+			return
+		}
 		filters["status"] = status
 	}
 	payment_type, ok := c.GetQuery("payment_type")
 	if ok {
+		if payment_type != "cash" && payment_type != "card" {
+			c.String(http.StatusBadRequest, "bad payment_type filter")
+		}
 		filters["payment_type"] = payment_type
 	}
 
@@ -42,7 +49,7 @@ func (srv *Server) getTransactions(c *gin.Context) {
 	if ok {
 		date_from = strings.ReplaceAll(date_from, "T", " ")
 		date, err := parse.ParseDate(date_from)
-		if err != nil {
+		if err != nil {	
 			c.String(http.StatusBadRequest, fmt.Sprintf("wrong syntaxis of date_post_from: %s", err))
 			return
 		}
