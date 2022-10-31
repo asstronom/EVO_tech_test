@@ -81,3 +81,12 @@ func (srv *Server) getTransactionByID(c *gin.Context) {
 	}
 	c.JSON(http.StatusOK, trx)
 }
+
+func (srv *Server) uploadCSV(c *gin.Context) {
+	file, err := c.FormFile("file")
+	if err != nil {
+		c.String(http.StatusInternalServerError, "error uploading file")
+	}
+	log.Println(file.Filename)
+	c.String(http.StatusCreated, "success!")
+}
