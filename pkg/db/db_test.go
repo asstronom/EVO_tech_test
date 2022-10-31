@@ -3,10 +3,12 @@ package db
 import (
 	"context"
 	"fmt"
+	"os"
 	"testing"
 	"time"
 
 	"github.com/asstronom/EVO_tech_test/pkg/domain"
+	"github.com/asstronom/EVO_tech_test/pkg/parse"
 )
 
 const (
@@ -93,5 +95,25 @@ func TestInsertTransactionsById(t *testing.T) {
 	err = db.InsertTransactions(context.Background(), []domain.Transaction{TestTransaction, TestTransaction1})
 	if err != nil {
 		t.Errorf("error inserting transactions: %s", err)
+	}
+}
+
+func TestParseAndInsertCSVFile(t *testing.T) {
+	db, err := Open(context.Background(), dburl)
+	if err != nil {
+		t.Errorf("error opening db: %s", err)
+	}
+	file, err := os.Open("example.csv")
+	if err != nil {
+		t.Errorf("error opening csv file: %s", err)
+	}
+	defer file.Close()
+	trxs, err := parse.ParseCSVFile(file)
+	if err != nil {
+		t.Errorf("error parsing csv file: %s", err)
+	}
+	err = db.InsertTransactions(context.Background(), trxs)
+	if err != nil {
+		t.Errorf("error inserting many transactions")
 	}
 }
