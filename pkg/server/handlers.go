@@ -41,6 +41,7 @@ func (srv *Server) transactions(c *gin.Context) {
 	if ok {
 		if payment_type != "cash" && payment_type != "card" {
 			c.String(http.StatusBadRequest, "bad payment_type filter")
+			return
 		}
 		filters["payment_type"] = payment_type
 	}
