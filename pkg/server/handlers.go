@@ -91,7 +91,7 @@ func (srv *Server) transactionByID(c *gin.Context) {
 		c.String(http.StatusNotFound, "error getting trx: %s", err)
 		return
 	}
-	c.JSON(http.StatusOK, trx)
+	c.IndentedJSON(http.StatusOK, trx)
 }
 
 func (srv *Server) uploadCSV(c *gin.Context) {
