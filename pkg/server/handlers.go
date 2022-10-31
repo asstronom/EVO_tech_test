@@ -58,7 +58,12 @@ func (srv *Server) getTransactions(c *gin.Context) {
 	if ok {
 		filters["payment_narrative"] = payment_narrative
 	}
-	c.JSON(http.StatusOK, filters)
+	trxs, err := srv.db.GetTransactions(context.Background(), filters)
+	if err != nil {
+		c.String(http.StatusNotFound, "error getting transactions: ", err)
+		return
+	}
+	c.JSON(http.StatusOK, trxs)
 }
 
 func (srv *Server) getTransactionByID(c *gin.Context) {
@@ -71,7 +76,7 @@ func (srv *Server) getTransactionByID(c *gin.Context) {
 	}
 	trx, err := srv.db.GetTransactionByID(context.Background(), id)
 	if err != nil {
-		c.String(http.StatusInternalServerError, "error getting trx: %s", err)
+		c.String(http.StatusNotFound, "error getting trx: %s", err)
 		return
 	}
 	c.JSON(http.StatusOK, trx)
