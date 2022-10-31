@@ -3,13 +3,13 @@
 
 ## API Documentation
 
-All API is accessed from localhost:port where port is specified during installation (default 8080)
-To upload csv file use ```POST /upload```
+All API is accessed from localhost:port where port is specified during installation (default 8080)  
+To upload csv file use ```POST /upload```  
 Example:
 ```curl
 curl -i -X POST http://localhost:8080/upload -F "file=@example.csv" -H "Content-Type: multipart/form-data"
 ```
-To get transaction by ID use ```GET /transactions/id```.
+To get transaction by ID use ```GET /transactions/id```.  
 Example:
 ```curl
 curl -i -X GET http://localhost:8080/transactions/1 
