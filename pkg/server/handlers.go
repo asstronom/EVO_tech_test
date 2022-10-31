@@ -63,7 +63,7 @@ func (srv *Server) getTransactions(c *gin.Context) {
 		c.String(http.StatusNotFound, "error getting transactions: ", err)
 		return
 	}
-	c.JSON(http.StatusOK, trxs)
+	c.IndentedJSON(http.StatusOK, trxs)
 }
 
 func (srv *Server) getTransactionByID(c *gin.Context) {
