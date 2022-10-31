@@ -1,6 +1,7 @@
 package server
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"net/http"
@@ -68,5 +69,10 @@ func (srv *Server) getTransactionByID(c *gin.Context) {
 			return
 		}
 	}
-	c.String(http.StatusOK, "returning transaction id:%d", id)
+	trx, err := srv.db.GetTransactionByID(context.Background(), id)
+	if err != nil {
+		c.String(http.StatusInternalServerError, "error getting trx: %s", err)
+		return
+	}
+	c.JSON(http.StatusOK, trx)
 }
