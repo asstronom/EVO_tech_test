@@ -66,7 +66,7 @@ func (srv *Server) getTransactions(c *gin.Context) {
 	c.IndentedJSON(http.StatusOK, trxs)
 }
 
-func (srv *Server) getTransactionByID(c *gin.Context) {
+func (srv *Server) transactionByID(c *gin.Context) {
 	id, err := strconv.Atoi(c.Param("id"))
 	if err != nil {
 		if errors.Is(err, strconv.ErrSyntax) {
