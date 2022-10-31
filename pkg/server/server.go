@@ -25,14 +25,15 @@ func (s *Server) Run(port string) error {
 	return nil
 }
 
-func (srv *Server) initEndpoints(router *gin.Engine) {
-	router.GET("/transactions/:id", srv.getTransactionByID)
-	router.GET("/transactions", srv.getTransactions)
+func (srv *Server) initEndpoints() {
+	srv.router.GET("/transactions/:id", srv.transactionByID)
+	srv.router.GET("/transactions", srv.getTransactions)
+	srv.router.POST("/upload", srv.uploadCSV)
 }
 
 func NewServer(db *db.TransactionDB) (*Server, error) {
 	router := gin.Default()
 	srv := Server{router: router, db: db}
-	srv.initEndpoints(router)
+	srv.initEndpoints()
 	return &srv, nil
 }
