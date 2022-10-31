@@ -3,7 +3,9 @@ package db
 import (
 	"context"
 	"fmt"
+	"strings"
 
+	sq "github.com/Masterminds/squirrel"
 	"github.com/asstronom/EVO_tech_test/pkg/domain"
 	"github.com/jackc/pgx/v4"
 	"github.com/jackc/pgx/v4/pgxpool"
@@ -117,4 +119,52 @@ func (db *TransactionDB) GetTransactionByID(ctx context.Context, id int) (*domai
 	}
 	bres.Close()
 	return &result, nil
+}
+
+func (db *TransactionDB) GetTransactions(filters map[string]interface{}) ([]domain.Transaction, error) {
+	build := sq.StatementBuilder.PlaceholderFormat(sq.Dollar)
+	sqltrx := build.Select(`id, requestid, terminalid, partnerobjectid,
+	amounttotal, amountoriginal, commisionps, commisionclient, commisionprovider,
+	dateinput, datepost, statusid, paymenttype, paymentnumber, serviceid, servicetypeid, payeeid,
+	payeenameid, payeebankmfo, payeebankaccount, paymentnarrativeid`).From("transactions")
+	if f, ok := filters["terminal_ids"]; ok {
+		terminal_ids, ok := f.([]interface{})
+		if !ok {
+			return nil, fmt.Errorf("terminal_ids filter is not of type []interface{}")
+		}
+		if len(terminal_ids) > 0 {
+			b := strings.Builder{}
+			b.WriteString("(?")
+			for i := 1; i < len(terminal_ids); i++ {
+				b.WriteString(", ?")
+			}
+			b.WriteString(")")
+			sqltrx = sqltrx.Where("terminalid IN "+b.String(), terminal_ids...)
+		}
+	}
+	if status, ok := filters["status"]; ok {
+		sqltrx = sqltrx.Where("status = ?", status)
+	}
+	if payment_type, ok := filters["payment_type"]; ok {
+		sqltrx = sqltrx.Where("status = ?", payment_type)
+	}
+	if date_from, ok := filters["date_post_from"]; ok {
+		sqltrx = sqltrx.Where("datepost >= ?", date_from)
+	}
+	if date_to, ok := filters["date_post_to"]; ok {
+		sqltrx = sqltrx.Where("datepost <= ?", date_to)
+	}
+	if payment_narrative, ok := filters["payment_narrative"]; ok {
+		sqltrx = sqltrx.Join("paymentnarratives ON transactions.id = paymentnarratives.id").Where("paymentnarratives.title LIKE ?", payment_narrative)
+	}
+	sql, args, err := sqltrx.ToSql()
+	if err != nil {
+		return nil, fmt.Errorf("error converting selectbuilder to string: %w", err)
+	}
+	fmt.Println(sql)
+	fmt.Println(args)
+
+
+
+	return nil, nil
 }
