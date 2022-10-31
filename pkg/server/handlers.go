@@ -88,10 +88,26 @@ func (srv *Server) transactionByID(c *gin.Context) {
 }
 
 func (srv *Server) uploadCSV(c *gin.Context) {
-	file, err := c.FormFile("file")
+	fileh, err := c.FormFile("file")
 	if err != nil {
 		c.String(http.StatusInternalServerError, "error uploading file")
+		return
 	}
-	log.Println(file.Filename)
+	log.Println(fileh.Filename)
+	file, err := fileh.Open()
+	if err != nil {
+		c.String(http.StatusInternalServerError, "error opening file: %s", err)
+		return
+	}
+	trxs, err := parse.ParseCSVFile(file)
+	if err != nil {
+		c.String(http.StatusInternalServerError, "error parsing file: %s", err)
+		return
+	}
+	err = srv.db.InsertTransactions(context.Background(), trxs)
+	if err != nil {
+		c.String(http.StatusInternalServerError, "error inserting data: %s", err)
+		return
+	}
 	c.String(http.StatusCreated, "success!")
 }
