@@ -7,7 +7,7 @@ func TestServer(t *testing.T) {
 	if err != nil {
 		t.Errorf("error creating server: %s", err)
 	}
-	err = srv.Run(":")
+	err = srv.Run(":8080")
 	if err != nil {
 		t.Errorf("error starting server: %s", err)
 	}
