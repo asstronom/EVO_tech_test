@@ -2,11 +2,13 @@ package db
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"strings"
 
 	sq "github.com/Masterminds/squirrel"
 	"github.com/asstronom/EVO_tech_test/pkg/domain"
+	"github.com/jackc/pgconn"
 	"github.com/jackc/pgx/v4"
 	"github.com/jackc/pgx/v4/pgxpool"
 )
@@ -71,7 +73,15 @@ func (db *TransactionDB) InsertTransactions(ctx context.Context, trxs []domain.T
 				trx.PayeeBankAccount, trx.PaymentNarrative)
 		}
 		bres := db.pool.SendBatch(ctx, &b)
-		bres.Close()
+		err := bres.Close()
+		if err != nil {
+			var pgErr *pgconn.PgError
+			if errors.As(err, &pgErr) && pgErr.Code == "23505" {
+				return fmt.Errorf("duplicate data")
+			}
+			return fmt.Errorf("error sending batch: %w", err)
+
+		}
 	}
 	return nil
 }
