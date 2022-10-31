@@ -36,8 +36,10 @@ func (srv *Server) getTransactions(c *gin.Context) {
 	if ok {
 		filters["payment_type"] = payment_type
 	}
+
 	date_from, ok := c.GetQuery("date_post_from")
 	if ok {
+		date_from = strings.ReplaceAll(date_from, "T", " ")
 		date, err := parse.ParseDate(date_from)
 		if err != nil {
 			c.String(http.StatusBadRequest, fmt.Sprintf("wrong syntaxis of date_post_from: %s", err))
@@ -45,8 +47,10 @@ func (srv *Server) getTransactions(c *gin.Context) {
 		}
 		filters["date_post_from"] = date
 	}
+
 	date_to, ok := c.GetQuery("date_post_to")
 	if ok {
+		date_to = strings.ReplaceAll(date_to, "T", " ")
 		date, err := parse.ParseDate(date_to)
 		if err != nil {
 			c.String(http.StatusBadRequest, fmt.Sprintf("wrong syntaxis of date_post_to: %s", err))
