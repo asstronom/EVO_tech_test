@@ -49,7 +49,7 @@ func ParseDate(datestr string) (time.Time, error) {
 	if err != nil {
 		return time.Unix(0, 0), fmt.Errorf("error parsing seconds: %w", err)
 	}
-	return time.Date(year, time.Month(month), day, hours, minutes, seconds, 0, time.Local), nil
+	return time.Date(year, time.Month(month), day, hours, minutes, seconds, 0, time.UTC), nil
 }
 
 func recordToTransaction(record []string) (*domain.Transaction, error) {
