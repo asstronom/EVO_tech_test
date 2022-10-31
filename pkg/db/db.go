@@ -175,7 +175,8 @@ func (db *TransactionDB) GetTransactions(ctx context.Context, filters map[string
 	INNER JOIN payeenames
 	ON t.payeenameid = payeenames.id
 	INNER JOIN paymentnarratives
-	ON t.paymentnarrativeid = paymentnarratives.id`
+	ON t.paymentnarrativeid = paymentnarratives.id
+	ORDER BY t.id`
 
 	rows, err := db.pool.Query(ctx, withClause+selectClause, args...)
 	if err != nil {
