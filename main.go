@@ -6,6 +6,7 @@ import (
 
 	"github.com/asstronom/EVO_tech_test/pkg/db"
 	"github.com/asstronom/EVO_tech_test/pkg/migratedb"
+	"github.com/asstronom/EVO_tech_test/pkg/server"
 )
 
 func main() {
@@ -20,4 +21,9 @@ func main() {
 	if err != nil {
 		log.Fatalln(err)
 	}
+	srv, err := server.NewServer()
+	if err != nil {
+		log.Fatalln("error starting server", err)
+	}
+	srv.Run(":8080")
 }
