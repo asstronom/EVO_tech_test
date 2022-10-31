@@ -17,11 +17,11 @@ func main() {
 	if err != nil {
 		log.Fatalln(err)
 	}
-	_, err = db.Open(context.Background(), dburl)
+	trdb, err := db.Open(context.Background(), dburl)
 	if err != nil {
 		log.Fatalln(err)
 	}
-	srv, err := server.NewServer()
+	srv, err := server.NewServer(trdb)
 	if err != nil {
 		log.Fatalln("error starting server", err)
 	}
