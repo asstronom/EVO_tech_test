@@ -3,6 +3,16 @@ version: "3.8"
 
 # add the serivces needed (postgres,go)
 services:
+  app:
+    container_name: api-server
+    build: .
+    depends_on:
+      - postgres
+    ports:
+      - '8000:8080'
+    networks:
+      - learning
+
   postgres:
     container_name: transactionsdb
     image: postgres:latest
@@ -13,16 +23,12 @@ services:
       - "5432:5432"
     volumes: 
       - dbdata:/var/lib/postgresql/data
+    networks:
+      - learning
 
-#  go:
-#    container_name: go
-#    # build the Dockerfile, alternatively use an image.
-#    build:
-#      context: .
-#    depends_on:
-#      - "postgres"
-#      - "neo4j"
-#      - "couchdb"
+networks:
+  learning:
+    driver: bridge
 
 volumes:
   dbdata:

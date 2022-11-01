@@ -11,8 +11,8 @@ import (
 
 func main() {
 	var err error
-	dburl := "postgres://user:mypassword@localhost:5432/transactions"
-	migrateurl := "postgres://user:mypassword@localhost:5432/transactions?sslmode=disable"
+	dburl := "postgres://user:mypassword@transactionsdb:5432/transactions"
+	migrateurl := "postgres://user:mypassword@transactionsdb:5432/transactions?sslmode=disable"
 	err = migratedb.MigrateUp(migrateurl)
 	if err != nil {
 		log.Fatalln(err)
