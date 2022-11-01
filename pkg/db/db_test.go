@@ -64,6 +64,8 @@ var (
 	}
 )
 
+//these tests are not working, didn't have time to finish them
+
 func TestInsertSingleTransaction(t *testing.T) {
 	db, err := Open(context.Background(), dburl)
 	if err != nil {
