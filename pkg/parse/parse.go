@@ -11,6 +11,7 @@ import (
 	"github.com/asstronom/EVO_tech_test/pkg/domain"
 )
 
+//parses date string, format is 'YYYY-MM-DD HH-MM-SS'
 func ParseDate(datestr string) (time.Time, error) {
 	var year, month, day, hours, minutes, seconds int
 	splits := strings.Split(datestr, " ")
@@ -52,6 +53,7 @@ func ParseDate(datestr string) (time.Time, error) {
 	return time.Date(year, time.Month(month), day, hours, minutes, seconds, 0, time.UTC), nil
 }
 
+//converts csv record to domain.Transaction
 func recordToTransaction(record []string) (*domain.Transaction, error) {
 	var err error
 	trx := domain.Transaction{}
@@ -142,6 +144,7 @@ func recordToTransaction(record []string) (*domain.Transaction, error) {
 	return &trx, nil
 }
 
+//parses csv file
 func ParseCSVFile(file io.Reader) ([]domain.Transaction, error) {
 	r := csv.NewReader(file)
 	columns, err := r.Read()
@@ -167,6 +170,7 @@ func ParseCSVFile(file io.Reader) ([]domain.Transaction, error) {
 	return res, nil
 }
 
+//valides port string
 func ValidatePort(port string) error {
 	if len(port) == 0 {
 		return fmt.Errorf("port is empty")
