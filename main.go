@@ -2,7 +2,9 @@ package main
 
 import (
 	"context"
+	"fmt"
 	"log"
+	"os"
 
 	"github.com/asstronom/EVO_tech_test/pkg/db"
 	"github.com/asstronom/EVO_tech_test/pkg/migratedb"
@@ -11,8 +13,13 @@ import (
 
 func main() {
 	var err error
-	dburl := "postgres://user:mypassword@transactionsdb:5432/transactions"
-	migrateurl := "postgres://user:mypassword@transactionsdb:5432/transactions?sslmode=disable"
+	dbuser := os.Getenv("POSTGRES_USER")
+	dbpass := os.Getenv("POSTGRES_PASSWORD")
+	dbname := os.Getenv("POSTGRES_DB")
+	dbhost := os.Getenv("DATABASE_HOST")
+	dbport := os.Getenv("DATABASE_PORT")
+	dburl := fmt.Sprintf("postgres://%s:%s@%s:%s/%s", dbuser, dbpass, dbhost, dbport, dbname)
+	migrateurl := fmt.Sprintf("postgres://%s:%s@%s:%s/%s?sslmode=disable", dbuser, dbpass, dbhost, dbport, dbname)
 	err = migratedb.MigrateUp(migrateurl)
 	if err != nil {
 		log.Fatalln(err)
