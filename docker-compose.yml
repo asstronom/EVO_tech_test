@@ -27,6 +27,20 @@ services:
     networks:
       - learning
 
+  dbtest:
+    container_name: testdb
+    image: postgres:latest
+    environment:
+      POSTGRES_USER: user
+      POSTGRES_PASSWORD: mypassword
+      POSTGRES_DB: "transactions"
+    ports:
+      - "5432:5432"
+    volumes: 
+      - dbdata:/var/lib/postgresql/data
+    networks:
+      - learning
+
 networks:
   learning:
     driver: bridge
