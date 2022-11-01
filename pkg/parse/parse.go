@@ -4,7 +4,6 @@ import (
 	"encoding/csv"
 	"fmt"
 	"io"
-	"os"
 	"strconv"
 	"strings"
 	"time"
@@ -50,7 +49,7 @@ func ParseDate(datestr string) (time.Time, error) {
 	if err != nil {
 		return time.Unix(0, 0), fmt.Errorf("error parsing seconds: %w", err)
 	}
-	return time.Date(year, time.Month(month), day, hours, minutes, seconds, 0, time.Local), nil
+	return time.Date(year, time.Month(month), day, hours, minutes, seconds, 0, time.UTC), nil
 }
 
 func recordToTransaction(record []string) (*domain.Transaction, error) {
@@ -143,7 +142,7 @@ func recordToTransaction(record []string) (*domain.Transaction, error) {
 	return &trx, nil
 }
 
-func ParseCSVFile(file *os.File) ([]domain.Transaction, error) {
+func ParseCSVFile(file io.Reader) ([]domain.Transaction, error) {
 	r := csv.NewReader(file)
 	columns, err := r.Read()
 	fmt.Println(columns)
@@ -166,4 +165,24 @@ func ParseCSVFile(file *os.File) ([]domain.Transaction, error) {
 		res = append(res, *tx)
 	}
 	return res, nil
+}
+
+func ValidatePort(port string) error {
+	if len(port) == 0 {
+		return fmt.Errorf("port is empty")
+	}
+	if port[0] != ':' {
+		return fmt.Errorf(`wrong port, first character is not ":"`)
+	}
+	if len(port) < 2 {
+		return fmt.Errorf("port number is not specified")
+	}
+	n, err := strconv.Atoi(port[1:])
+	if err != nil {
+		return fmt.Errorf("error port number: %w", err)
+	}
+	if n < 1 || n > 65535 {
+		return fmt.Errorf("port number is not in range 1-65535")
+	}
+	return nil
 }

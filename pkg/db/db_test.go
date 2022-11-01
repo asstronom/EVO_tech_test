@@ -3,10 +3,12 @@ package db
 import (
 	"context"
 	"fmt"
+	"os"
 	"testing"
 	"time"
 
 	"github.com/asstronom/EVO_tech_test/pkg/domain"
+	"github.com/asstronom/EVO_tech_test/pkg/parse"
 )
 
 const (
@@ -24,8 +26,8 @@ var (
 		CommisionPs:       0.00,
 		CommisionClient:   0.00,
 		CommisionProvider: 0.00,
-		DateInput:         time.Date(2022, 8, 12, 11, 25, 27, 0, time.Local),
-		DatePost:          time.Date(2022, 8, 12, 14, 25, 27, 0, time.Local),
+		DateInput:         time.Date(2022, 8, 12, 11, 25, 27, 0, time.UTC),
+		DatePost:          time.Date(2022, 8, 12, 14, 25, 27, 0, time.UTC),
 		Status:            "accepted",
 		PaymentType:       "cash",
 		PaymentNumber:     "PS16698205",
@@ -47,8 +49,8 @@ var (
 		CommisionPs:       0.00,
 		CommisionClient:   0.00,
 		CommisionProvider: 0.00,
-		DateInput:         time.Date(2022, 8, 12, 12, 36, 52, 0, time.Local),
-		DatePost:          time.Date(2022, 8, 12, 15, 36, 53, 0, time.Local),
+		DateInput:         time.Date(2022, 8, 12, 12, 36, 52, 0, time.UTC),
+		DatePost:          time.Date(2022, 8, 12, 15, 36, 53, 0, time.UTC),
 		Status:            "accepted",
 		PaymentType:       "cash",
 		PaymentNumber:     "PS16698215",
@@ -93,5 +95,57 @@ func TestInsertTransactionsById(t *testing.T) {
 	err = db.InsertTransactions(context.Background(), []domain.Transaction{TestTransaction, TestTransaction1})
 	if err != nil {
 		t.Errorf("error inserting transactions: %s", err)
+	}
+}
+
+func TestParseAndInsertCSVFile(t *testing.T) {
+	db, err := Open(context.Background(), dburl)
+	if err != nil {
+		t.Errorf("error opening db: %s", err)
+	}
+	file, err := os.Open("example.csv")
+	if err != nil {
+		t.Errorf("error opening csv file: %s", err)
+	}
+	defer file.Close()
+	trxs, err := parse.ParseCSVFile(file)
+	if err != nil {
+		t.Errorf("error parsing csv file: %s", err)
+	}
+	err = db.InsertTransactions(context.Background(), trxs)
+	if err != nil {
+		t.Errorf("error inserting many transactions")
+	}
+}
+
+func TestGetTransactionsWithFilters(t *testing.T) {
+	db, err := Open(context.Background(), dburl)
+	if err != nil {
+		t.Errorf("error opening db: %s", err)
+	}
+	date_from, err := parse.ParseDate("2022-08-17 12:53:44")
+	if err != nil {
+		t.Errorf("error parsing date_from: %s", err)
+	}
+	date_to, err := parse.ParseDate("2022-08-17 14:25:27")
+	if err != nil {
+		t.Errorf("error parsing date_to: %s", err)
+	}
+	fmt.Println(date_from, date_to)
+	filters := map[string]interface{}{
+		//"terminal_ids":      []interface{}{3506, 3508, 3511, 3515},
+		//"status":       "accepted",
+		//"payment_type": "card",
+		//"date_post_from":    date_from,
+		//"date_post_to":      date_to,
+		//"payment_narrative": "27122",
+	}
+	trxs, err := db.GetTransactions(context.Background(), filters)
+	if err != nil {
+		t.Errorf("error getting transactions with filters: %s", err)
+	}
+	fmt.Println("len:", len(trxs))
+	for i := range trxs {
+		fmt.Println(trxs[i])
 	}
 }
