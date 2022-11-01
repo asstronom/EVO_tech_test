@@ -6,11 +6,11 @@ services:
   app:
     container_name: api-server
     environment:
-      - POSTGRES_USER=$(DB_USER)
-      - POSTGRES_PASSWORD=$(DB_PASSWORD)
-      - POSTGRES_DB=$(DB_NAME)
-      - DATABASE_HOST=$(DB_HOST)
-      - DATABASE_PORT=$(DB_PORT)
+      - POSTGRES_USER=${DB_USER}
+      - POSTGRES_PASSWORD=${DB_PASSWORD}
+      - POSTGRES_DB=${DB_NAME}
+      - DATABASE_HOST=${DB_HOST}
+      - DATABASE_PORT=${DB_PORT}
     build: .
     depends_on:
       - postgres
@@ -25,7 +25,7 @@ services:
     environment:
       POSTGRES_USER: user
       POSTGRES_PASSWORD: mypassword
-      POSTGRES_DB: "transactions"
+      POSTGRES_DB: ${DB_NAME}
     ports:
       - "5432:5432"
     volumes: 
@@ -33,19 +33,19 @@ services:
     networks:
       - learning
 
-  dbtest:
-    container_name: testdb
-    image: postgres:latest
-    environment:
-      POSTGRES_USER: user
-      POSTGRES_PASSWORD: mypassword
-      POSTGRES_DB: $(DB_NAME)
-    ports:
-      - "5432:5432"
-    volumes: 
-      - dbdata:/var/lib/postgresql/data
-    networks:
-      - learning
+  # dbtest:
+  #   container_name: testdb
+  #   image: postgres:latest
+  #   environment:
+  #     POSTGRES_USER: user
+  #     POSTGRES_PASSWORD: mypassword
+  #     POSTGRES_DB: ${DB_NAME}
+  #   ports:
+  #     - "2345:5432"
+  #   volumes: 
+  #     - dbdata:/var/lib/postgresql/data
+  #   networks:
+  #     - learning
 
 networks:
   learning:
