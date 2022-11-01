@@ -17,6 +17,7 @@ type TransactionDB struct {
 	pool *pgxpool.Pool
 }
 
+//open database
 func Open(ctx context.Context, url string) (*TransactionDB, error) {
 	pool, err := pgxpool.Connect(ctx, url)
 	if err != nil {
@@ -29,10 +30,12 @@ func Open(ctx context.Context, url string) (*TransactionDB, error) {
 	return &TransactionDB{pool: pool}, nil
 }
 
+//close database
 func (db *TransactionDB) Close() {
 	db.pool.Close()
 }
 
+//insert single transaction
 func (db *TransactionDB) InsertTransaction(ctx context.Context, trx domain.Transaction) error {
 	_, err := db.pool.Exec(ctx, `INSERT INTO transactions (id, requestid, terminalid, partnerobjectid,
 		 amounttotal, amountoriginal, commisionps, commisionclient, commisionprovider,
@@ -50,10 +53,12 @@ func (db *TransactionDB) InsertTransaction(ctx context.Context, trx domain.Trans
 	return nil
 }
 
+//insert many transactions 
 func (db *TransactionDB) InsertTransactions(ctx context.Context, trxs []domain.Transaction) error {
 	if trxs == nil {
 		return fmt.Errorf("trxs is nil")
 	}
+	//paginate trxs because pgx batch can overflow, so we are sending 100 transactions in single batch
 	pages := len(trxs) / 100
 	if pages == 0 {
 		pages = 1
@@ -86,13 +91,17 @@ func (db *TransactionDB) InsertTransactions(ctx context.Context, trxs []domain.T
 	return nil
 }
 
+//get single transaction by id
 func (db *TransactionDB) GetTransactionByID(ctx context.Context, id int) (*domain.Transaction, error) {
+	//use batch to avoid unnessesary network calls
 	b := pgx.Batch{}
+	//get fields from table
 	b.Queue(`SELECT id, requestid, terminalid, partnerobjectid,
 	amounttotal, amountoriginal, commisionps, commisionclient, commisionprovider,
 	dateinput, datepost, statusid, paymenttype, paymentnumber, serviceid, payeeid, payeebankmfo, payeebankaccount
 	FROM transactions
 	WHERE id = $1`, id)
+	//get fields that referenced with foreign keys
 	b.Queue(`WITH payeenameid AS (SELECT payeenameid FROM transactions WHERE id = $1)
 	SELECT title FROM payeenames, payeenameid WHERE payeenames.id = payeenameid`, id)
 	b.Queue(`WITH narrativeid AS (SELECT paymentnarrativeid AS narrativeid FROM transactions WHERE id = $1)
@@ -131,7 +140,9 @@ func (db *TransactionDB) GetTransactionByID(ctx context.Context, id int) (*domai
 	return &result, nil
 }
 
+//get transactions with filters
 func (db *TransactionDB) GetTransactions(ctx context.Context, filters map[string]interface{}) ([]domain.Transaction, error) {
+	//build sql query with filters
 	build := sq.StatementBuilder.PlaceholderFormat(sq.Dollar)
 	sqltrx := build.Select(`transactions.id, requestid, terminalid, partnerobjectid,
 	amounttotal, amountoriginal, commisionps, commisionclient, commisionprovider,
@@ -174,8 +185,9 @@ func (db *TransactionDB) GetTransactions(ctx context.Context, filters map[string
 	fmt.Println(sql)
 	fmt.Println(args)
 
+	//use filtered transactions AS t
 	withClause := "WITH t AS (\n" + sql + "\n)\n"
-
+	//apply joins with referenced tables and select fields
 	selectClause := `SELECT t.id, t.requestid, t.terminalid, t.partnerobjectid,
 	t.amounttotal, t.amountoriginal, t.commisionps, t.commisionclient, t.commisionprovider,
 	t.dateinput, t.datepost, t.statusid, t.paymenttype, t.paymentnumber, t.serviceid, servicetypes.title, t.payeeid,
@@ -187,7 +199,7 @@ func (db *TransactionDB) GetTransactions(ctx context.Context, filters map[string
 	INNER JOIN paymentnarratives
 	ON t.paymentnarrativeid = paymentnarratives.id
 	ORDER BY t.id`
-
+	//run query
 	rows, err := db.pool.Query(ctx, withClause+selectClause, args...)
 	if err != nil {
 		return nil, fmt.Errorf("error querying db: %w", err)
