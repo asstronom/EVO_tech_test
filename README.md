@@ -2,7 +2,7 @@
 ## How to setup
 You will need Docker for this app to run. To startup:
 - download repository
-- in the repository folder execute command ```docker compose -f "docker-compose.yml" up -d --build```
+- in the repository folder execute command ```docker docker compose -f "docker-compose.yml" up -d --build```
 
 ## API Documentation
 
