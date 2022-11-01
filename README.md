@@ -10,7 +10,7 @@ docker compose -f "docker-compose.yml" up -d --build
 ## API Documentation
 
 All API is accessed from localhost:8000     
-To upload csv file use ```POST /upload```. CSV file have the same structure as the one in parse/test_data/example.csv   
+To upload csv file use ```POST /upload```. CSV file must have the same structure as the one in parse/test_data/example.csv   
 Example:
 ```curl
 curl -i -X POST http://localhost:8080/upload -F "file=@example.csv" -H "Content-Type: multipart/form-data"
