@@ -3,8 +3,8 @@ package parse
 import (
 	"fmt"
 	"os"
-	"strconv"
 	"testing"
+	"time"
 )
 
 func TestParseCSVFile(t *testing.T) {
@@ -20,17 +20,19 @@ func TestParseCSVFile(t *testing.T) {
 }
 
 func TestParseDate(t *testing.T) {
-	time, err := ParseDate("2022-08-23 9:04:06")
-	if err != nil {
-		t.Errorf("error parsing time: %s", err)
+	empty_date, err := ParseDate("")
+	if err == nil {
+		t.Errorf("expected error when parsing empty date, parsing result: %v", empty_date)
 	}
-	fmt.Println(time)
-}
-
-func TestParseFloat(t *testing.T) {
-	f, err := strconv.ParseFloat("1.00", 64)
-	if err != nil {
-		t.Errorf("error parsing float: %s", err)
+	date_wo_time, err := ParseDate("2022-08-23 ")
+	if err == nil {
+		t.Errorf("expected error when parsind date w/o time, parsing result: %v", date_wo_time)
 	}
-	fmt.Println(f)
+	correct_date, err := ParseDate("2022-08-23 9:04:06")
+	if err != nil {
+		t.Errorf("error parsing correct date: %s", err)
+	}
+	if correct_date != time.Date(2022, 8, 23, 9, 4, 6, 0, time.UTC) {
+		t.Errorf("got wrong date after parsing: %v", correct_date)
+	}
 }
