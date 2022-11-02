@@ -17,7 +17,7 @@ type TransactionDB struct {
 	pool *pgxpool.Pool
 }
 
-//open database
+// open database
 func Open(ctx context.Context, url string) (*TransactionDB, error) {
 	pool, err := pgxpool.Connect(ctx, url)
 	if err != nil {
@@ -30,12 +30,12 @@ func Open(ctx context.Context, url string) (*TransactionDB, error) {
 	return &TransactionDB{pool: pool}, nil
 }
 
-//close database
+// close database
 func (db *TransactionDB) Close() {
 	db.pool.Close()
 }
 
-//insert single transaction
+// insert single transaction
 func (db *TransactionDB) InsertTransaction(ctx context.Context, trx domain.Transaction) error {
 	_, err := db.pool.Exec(ctx, `INSERT INTO transactions (id, requestid, terminalid, partnerobjectid,
 		 amounttotal, amountoriginal, commisionps, commisionclient, commisionprovider,
@@ -53,7 +53,7 @@ func (db *TransactionDB) InsertTransaction(ctx context.Context, trx domain.Trans
 	return nil
 }
 
-//insert many transactions 
+// insert many transactions
 func (db *TransactionDB) InsertTransactions(ctx context.Context, trxs []domain.Transaction) error {
 	if trxs == nil {
 		return fmt.Errorf("trxs is nil")
@@ -91,7 +91,7 @@ func (db *TransactionDB) InsertTransactions(ctx context.Context, trxs []domain.T
 	return nil
 }
 
-//get single transaction by id
+// get single transaction by id
 func (db *TransactionDB) GetTransactionByID(ctx context.Context, id int) (*domain.Transaction, error) {
 	//use batch to avoid unnessesary network calls
 	b := pgx.Batch{}
@@ -140,7 +140,7 @@ func (db *TransactionDB) GetTransactionByID(ctx context.Context, id int) (*domai
 	return &result, nil
 }
 
-//get transactions with filters
+// get transactions with filters
 func (db *TransactionDB) GetTransactions(ctx context.Context, filters map[string]interface{}) ([]domain.Transaction, error) {
 	//build sql query with filters
 	build := sq.StatementBuilder.PlaceholderFormat(sq.Dollar)
@@ -218,5 +218,6 @@ func (db *TransactionDB) GetTransactions(ctx context.Context, filters map[string
 			return nil, fmt.Errorf("error scanning row: %w", err)
 		}
 	}
+	rows.Close()
 	return result, nil
 }
