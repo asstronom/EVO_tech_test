@@ -4,6 +4,8 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"log"
+	"math"
 	"strings"
 
 	sq "github.com/Masterminds/squirrel"
@@ -59,11 +61,14 @@ func (db *TransactionDB) InsertTransactions(ctx context.Context, trxs []domain.T
 		return fmt.Errorf("trxs is nil")
 	}
 	//paginate trxs because pgx batch can overflow, so we are sending 100 transactions in single batch
-	pages := len(trxs) / 100
+	pages := int(math.Round(float64(len(trxs)) / 100))
 	if pages == 0 {
 		pages = 1
 	}
+	log.Println("len trxs:", len(trxs))
+	log.Println("pages:", pages)
 	for i := 0; i < pages; i++ {
+		log.Println("batch number:", i)
 		b := pgx.Batch{}
 		for j := 0; j < 100 && j+i*100 < len(trxs); j++ {
 			trx := trxs[i*100+j]
