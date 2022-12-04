@@ -61,10 +61,7 @@ func (db *TransactionDB) InsertTransactions(ctx context.Context, trxs []domain.T
 		return fmt.Errorf("trxs is nil")
 	}
 	//paginate trxs because pgx batch can overflow, so we are sending 100 transactions in single batch
-	pages := int(math.Round(float64(len(trxs)) / 100))
-	if pages == 0 {
-		pages = 1
-	}
+	pages := int(math.Ceil(float64(len(trxs)) / 100))
 	log.Println("len trxs:", len(trxs))
 	log.Println("pages:", pages)
 	for i := 0; i < pages; i++ {
