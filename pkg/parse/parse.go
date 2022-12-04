@@ -1,12 +1,13 @@
 package parse
 
 import (
-	"encoding/csv"
 	"errors"
 	"fmt"
 	"io"
 	"strconv"
 	"time"
+
+	"github.com/gocarina/gocsv"
 
 	"github.com/asstronom/EVO_tech_test/pkg/domain"
 )
@@ -55,121 +56,105 @@ func ParseDate(datestr string) (time.Time, error) {
 	return t, nil
 }
 
-// converts csv record to domain.Transaction
-func recordToTransaction(record []string) (*domain.Transaction, error) {
-	var err error
-	trx := domain.Transaction{}
-	trx.ID, err = strconv.Atoi(record[0])
-	if err != nil {
-		return nil, fmt.Errorf("error converting record to trx: %w", err)
-	}
-	trx.RequestID, err = strconv.Atoi(record[1])
-	if err != nil {
-		return nil, fmt.Errorf("error converting record to trx: %w", err)
-	}
-	trx.TerminalID, err = strconv.Atoi(record[2])
-	if err != nil {
-		return nil, fmt.Errorf("error converting record to trx: %w", err)
-	}
-	trx.PartnerObjectID, err = strconv.Atoi(record[3])
-	if err != nil {
-		return nil, fmt.Errorf("error parsing PartnerObjectID: %w", err)
-	}
-	trx.AmountTotal, err = strconv.ParseFloat(record[4], 64)
-	if err != nil {
-		return nil, fmt.Errorf("error parsing AmountTotal: %w", err)
-	}
-	trx.AmountOriginal, err = strconv.ParseFloat(record[5], 64)
-	if err != nil {
-		return nil, fmt.Errorf("error parsing AmountOriginal: %w", err)
-	}
-	trx.CommisionPs, err = strconv.ParseFloat(record[6], 64)
-	if err != nil {
-		return nil, fmt.Errorf("error converting record to trx: %w", err)
-	}
-	trx.CommisionClient, err = strconv.ParseFloat(record[7], 64)
-	if err != nil {
-		return nil, fmt.Errorf("error converting record to trx: %w", err)
-	}
-	trx.CommisionProvider, err = strconv.ParseFloat(record[8], 64)
-	if err != nil {
-		return nil, fmt.Errorf("error converting record to trx: %w", err)
-	}
-	trx.DateInput, err = ParseDate(record[9])
-	if err != nil {
-		return nil, fmt.Errorf("error converting record to trx: %w", err)
-	}
-	trx.DatePost, err = ParseDate(record[10])
-	if err != nil {
-		return nil, fmt.Errorf("error converting record to trx: %w", err)
-	}
-	trx.Status = record[11]
-	if err != nil {
-		return nil, fmt.Errorf("error converting record to trx: %w", err)
-	}
-	trx.PaymentType = record[12]
-	if err != nil {
-		return nil, fmt.Errorf("error converting record to trx: %w", err)
-	}
-	trx.PaymentNumber = record[13]
-	if err != nil {
-		return nil, fmt.Errorf("error converting record to trx: %w", err)
-	}
-	trx.ServiceID, err = strconv.Atoi(record[14])
-	if err != nil {
-		return nil, fmt.Errorf("error converting record to trx: %w", err)
-	}
-	trx.Service = record[15]
-	if err != nil {
-		return nil, fmt.Errorf("error converting record to trx: %w", err)
-	}
-	trx.PayeeID, err = strconv.Atoi(record[16])
-	if err != nil {
-		return nil, fmt.Errorf("error converting record to trx: %w", err)
-	}
-	trx.PayeeName = record[17]
-	if err != nil {
-		return nil, fmt.Errorf("error converting record to trx: %w", err)
-	}
-	trx.PayeeBankMfo, err = strconv.Atoi(record[18])
-	if err != nil {
-		return nil, fmt.Errorf("error converting record to trx: %w", err)
-	}
-	trx.PayeeBankAccount = record[19]
-	if err != nil {
-		return nil, fmt.Errorf("error converting record to trx: %w", err)
-	}
-	trx.PaymentNarrative = record[20]
-	if err != nil {
-		return nil, fmt.Errorf("error converting record to trx: %w", err)
-	}
-	return &trx, nil
-}
+// // converts csv record to domain.Transaction
+// func recordToTransaction(record []string) (*domain.Transaction, error) {
+// 	var err error
+// 	trx := domain.Transaction{}
+// 	trx.ID, err = strconv.Atoi(record[0])
+// 	if err != nil {
+// 		return nil, fmt.Errorf("error converting record to trx: %w", err)
+// 	}
+// 	trx.RequestID, err = strconv.Atoi(record[1])
+// 	if err != nil {
+// 		return nil, fmt.Errorf("error converting record to trx: %w", err)
+// 	}
+// 	trx.TerminalID, err = strconv.Atoi(record[2])
+// 	if err != nil {
+// 		return nil, fmt.Errorf("error converting record to trx: %w", err)
+// 	}
+// 	trx.PartnerObjectID, err = strconv.Atoi(record[3])
+// 	if err != nil {
+// 		return nil, fmt.Errorf("error parsing PartnerObjectID: %w", err)
+// 	}
+// 	trx.AmountTotal, err = strconv.ParseFloat(record[4], 64)
+// 	if err != nil {
+// 		return nil, fmt.Errorf("error parsing AmountTotal: %w", err)
+// 	}
+// 	trx.AmountOriginal, err = strconv.ParseFloat(record[5], 64)
+// 	if err != nil {
+// 		return nil, fmt.Errorf("error parsing AmountOriginal: %w", err)
+// 	}
+// 	trx.CommisionPs, err = strconv.ParseFloat(record[6], 64)
+// 	if err != nil {
+// 		return nil, fmt.Errorf("error converting record to trx: %w", err)
+// 	}
+// 	trx.CommisionClient, err = strconv.ParseFloat(record[7], 64)
+// 	if err != nil {
+// 		return nil, fmt.Errorf("error converting record to trx: %w", err)
+// 	}
+// 	trx.CommisionProvider, err = strconv.ParseFloat(record[8], 64)
+// 	if err != nil {
+// 		return nil, fmt.Errorf("error converting record to trx: %w", err)
+// 	}
+// 	trx.DateInput, err = ParseDate(record[9])
+// 	if err != nil {
+// 		return nil, fmt.Errorf("error converting record to trx: %w", err)
+// 	}
+// 	trx.DatePost, err = ParseDate(record[10])
+// 	if err != nil {
+// 		return nil, fmt.Errorf("error converting record to trx: %w", err)
+// 	}
+// 	trx.Status = record[11]
+// 	if err != nil {
+// 		return nil, fmt.Errorf("error converting record to trx: %w", err)
+// 	}
+// 	trx.PaymentType = record[12]
+// 	if err != nil {
+// 		return nil, fmt.Errorf("error converting record to trx: %w", err)
+// 	}
+// 	trx.PaymentNumber = record[13]
+// 	if err != nil {
+// 		return nil, fmt.Errorf("error converting record to trx: %w", err)
+// 	}
+// 	trx.ServiceID, err = strconv.Atoi(record[14])
+// 	if err != nil {
+// 		return nil, fmt.Errorf("error converting record to trx: %w", err)
+// 	}
+// 	trx.Service = record[15]
+// 	if err != nil {
+// 		return nil, fmt.Errorf("error converting record to trx: %w", err)
+// 	}
+// 	trx.PayeeID, err = strconv.Atoi(record[16])
+// 	if err != nil {
+// 		return nil, fmt.Errorf("error converting record to trx: %w", err)
+// 	}
+// 	trx.PayeeName = record[17]
+// 	if err != nil {
+// 		return nil, fmt.Errorf("error converting record to trx: %w", err)
+// 	}
+// 	trx.PayeeBankMfo, err = strconv.Atoi(record[18])
+// 	if err != nil {
+// 		return nil, fmt.Errorf("error converting record to trx: %w", err)
+// 	}
+// 	trx.PayeeBankAccount = record[19]
+// 	if err != nil {
+// 		return nil, fmt.Errorf("error converting record to trx: %w", err)
+// 	}
+// 	trx.PaymentNarrative = record[20]
+// 	if err != nil {
+// 		return nil, fmt.Errorf("error converting record to trx: %w", err)
+// 	}
+// 	return &trx, nil
+// }
 
 // parses csv file
 func ParseCSVFile(file io.Reader) ([]domain.Transaction, error) {
-	r := csv.NewReader(file)
-	columns, err := r.Read()
-	fmt.Println(columns)
+	transactions := []domain.Transaction{}
+	err := gocsv.Unmarshal(file, &transactions)
 	if err != nil {
-		return nil, fmt.Errorf("error parsing columns of csv file: %w", err)
+		return nil, fmt.Errorf("error parsing csv file: %w", err)
 	}
-	res := []domain.Transaction{}
-	for {
-		record, err := r.Read()
-		if err == io.EOF {
-			break
-		}
-		if err != nil {
-			return nil, fmt.Errorf("error parsing record of csv file: %w", err)
-		}
-		tx, err := recordToTransaction(record)
-		if err != nil {
-			return nil, fmt.Errorf("error converting record to Transaction: %w", err)
-		}
-		res = append(res, *tx)
-	}
-	return res, nil
+	return transactions, nil
 }
 
 // valides port string
