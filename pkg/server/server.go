@@ -13,27 +13,27 @@ type Server struct {
 	db     *db.TransactionDB
 }
 
-//run server
-func (s *Server) Run(port string) error {
+// run server
+func (srv *Server) Run(port string) error {
 	err := parse.ValidatePort(port)
 	if err != nil {
 		return fmt.Errorf("bad port number: %w", err)
 	}
-	err = s.router.Run(port)
+	err = srv.router.Run(port)
 	if err != nil {
 		return fmt.Errorf("error running router: %w", err)
 	}
 	return nil
 }
 
-//add endpoints to router
+// add endpoints to router
 func (srv *Server) initEndpoints() {
 	srv.router.GET("/transactions/:id", srv.transactionByID)
 	srv.router.GET("/transactions", srv.transactions)
 	srv.router.POST("/upload", srv.uploadCSV)
 }
 
-//create server
+// create server
 func NewServer(db *db.TransactionDB) (*Server, error) {
 	router := gin.Default()
 	srv := Server{router: router, db: db}
