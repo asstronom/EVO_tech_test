@@ -3,12 +3,14 @@ FROM golang:latest
 RUN mkdir /app
 WORKDIR /app
 
-COPY . .
-COPY .env .
+COPY go.mod ./
+COPY go.sum ./
 
-RUN go get -d -v ./...
+RUN go mod download
 
-RUN go install -v ./...
+COPY *.go ./
+
+COPY . ./
 
 RUN go build -o /build
 
