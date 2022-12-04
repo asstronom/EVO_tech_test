@@ -2,58 +2,27 @@ package parse
 
 import (
 	"encoding/csv"
+	"errors"
 	"fmt"
 	"io"
 	"strconv"
-	"strings"
 	"time"
 
 	"github.com/asstronom/EVO_tech_test/pkg/domain"
 )
 
-//parses date string, format is 'YYYY-MM-DD HH-MM-SS'
+const layout = "2006-01-02 15:04:05"
+
+// parses date string, format is 'YYYY-MM-DD HH-MM-SS'
 func ParseDate(datestr string) (time.Time, error) {
-	var year, month, day, hours, minutes, seconds int
-	splits := strings.Split(datestr, " ")
-	if len(splits) != 2 {
-		return time.Unix(0, 0), fmt.Errorf("wrong date format")
-	}
-	datesplit := strings.Split(splits[0], "-")
-	if len(datesplit) != 3 {
-		return time.Unix(0, 0), fmt.Errorf("wrong date format")
-	}
-	timesplit := strings.Split(splits[1], ":")
-	if len(timesplit) != 3 {
-		return time.Unix(0, 0), fmt.Errorf("wrong date format")
-	}
-	year, err := strconv.Atoi(datesplit[0])
+	t, err := time.Parse(layout, datestr)
 	if err != nil {
-		return time.Unix(0, 0), fmt.Errorf("error parsing year: %w", err)
+		return time.UnixMilli(0), err
 	}
-	month, err = strconv.Atoi(datesplit[1])
-	if err != nil {
-		return time.Unix(0, 0), fmt.Errorf("error parsing month: %w", err)
-	}
-	day, err = strconv.Atoi(datesplit[2])
-	if err != nil {
-		return time.Unix(0, 0), fmt.Errorf("error parsing day: %w", err)
-	}
-	hours, err = strconv.Atoi(timesplit[0])
-	if err != nil {
-		return time.Unix(0, 0), fmt.Errorf("error parsing hours: %w", err)
-	}
-	minutes, err = strconv.Atoi(timesplit[1])
-	if err != nil {
-		return time.Unix(0, 0), fmt.Errorf("error parsing minutes: %w", err)
-	}
-	seconds, err = strconv.Atoi(timesplit[2])
-	if err != nil {
-		return time.Unix(0, 0), fmt.Errorf("error parsing seconds: %w", err)
-	}
-	return time.Date(year, time.Month(month), day, hours, minutes, seconds, 0, time.UTC), nil
+	return t, nil
 }
 
-//converts csv record to domain.Transaction
+// converts csv record to domain.Transaction
 func recordToTransaction(record []string) (*domain.Transaction, error) {
 	var err error
 	trx := domain.Transaction{}
@@ -144,7 +113,7 @@ func recordToTransaction(record []string) (*domain.Transaction, error) {
 	return &trx, nil
 }
 
-//parses csv file
+// parses csv file
 func ParseCSVFile(file io.Reader) ([]domain.Transaction, error) {
 	r := csv.NewReader(file)
 	columns, err := r.Read()
@@ -170,10 +139,10 @@ func ParseCSVFile(file io.Reader) ([]domain.Transaction, error) {
 	return res, nil
 }
 
-//valides port string
+// valides port string
 func ValidatePort(port string) error {
 	if len(port) == 0 {
-		return fmt.Errorf("port is empty")
+		return errors.New("port is wrong")
 	}
 	if port[0] != ':' {
 		return fmt.Errorf(`wrong port, first character is not ":"`)
