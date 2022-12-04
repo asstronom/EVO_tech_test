@@ -16,7 +16,8 @@ func TestParseCSVFile(t *testing.T) {
 	if err != nil {
 		t.Errorf("error parsing csv file: %s", err)
 	}
-	fmt.Print(transactions[0])
+	fmt.Println(transactions[0])
+	fmt.Println(len(transactions))
 }
 
 func TestParseDate(t *testing.T) {
