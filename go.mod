@@ -2,7 +2,10 @@ module github.com/asstronom/EVO_tech_test
 
 go 1.19
 
-require github.com/jackc/pgconn v1.13.0
+require (
+	github.com/gocarina/gocsv v0.0.0-20221105105431-c8ef78125b99
+	github.com/jackc/pgconn v1.13.0
+)
 
 require (
 	github.com/gin-contrib/sse v0.1.0 // indirect
