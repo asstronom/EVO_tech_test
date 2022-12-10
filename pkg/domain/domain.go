@@ -13,6 +13,10 @@ func (date *DateTime) UnmarshalCSV(csv string) (err error) {
 	return err
 }
 
+func (date *DateTime) MarshalJSON() ([]byte, error) {
+	return []byte(`"` + date.String() + `"`), nil
+}
+
 type Transaction struct {
 	ID                int      `csv:"TransactionId"`
 	RequestID         int      `csv:"RequestId"`
