@@ -46,7 +46,7 @@ func (db *TransactionDB) InsertTransaction(ctx context.Context, trx domain.Trans
 		 VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, (SELECT id FROM servicetypes WHERE title=$16),
 		 $17, (SELECT id FROM payeenames WHERE title=$18), $19, $20, (SELECT id FROM paymentnarratives WHERE title=$21))`,
 		trx.ID, trx.RequestID, trx.TerminalID, trx.PartnerObjectID, trx.AmountTotal, trx.AmountOriginal, trx.CommisionPs, trx.CommisionClient, trx.CommisionProvider,
-		trx.DateInput, trx.DatePost, trx.Status, trx.PaymentType, trx.PaymentNumber, trx.ServiceID, trx.Service, trx.PayeeID, trx.PayeeName, trx.PayeeBankMfo,
+		trx.DateInput.Time, trx.DatePost.Time, trx.Status, trx.PaymentType, trx.PaymentNumber, trx.ServiceID, trx.Service, trx.PayeeID, trx.PayeeName, trx.PayeeBankMfo,
 		trx.PayeeBankAccount, trx.PaymentNarrative,
 	)
 	if err != nil {
@@ -76,7 +76,7 @@ func (db *TransactionDB) InsertTransactions(ctx context.Context, trxs []domain.T
 		 VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, (SELECT id FROM servicetypes WHERE title=$16),
 		 $17, (SELECT id FROM payeenames WHERE title=$18), $19, $20, (SELECT id FROM paymentnarratives WHERE title=$21))`,
 				trx.ID, trx.RequestID, trx.TerminalID, trx.PartnerObjectID, trx.AmountTotal, trx.AmountOriginal, trx.CommisionPs, trx.CommisionClient, trx.CommisionProvider,
-				trx.DateInput, trx.DatePost, trx.Status, trx.PaymentType, trx.PaymentNumber, trx.ServiceID, trx.Service, trx.PayeeID, trx.PayeeName, trx.PayeeBankMfo,
+				trx.DateInput.Time, trx.DatePost.Time, trx.Status, trx.PaymentType, trx.PaymentNumber, trx.ServiceID, trx.Service, trx.PayeeID, trx.PayeeName, trx.PayeeBankMfo,
 				trx.PayeeBankAccount, trx.PaymentNarrative)
 		}
 		bres := db.pool.SendBatch(ctx, &b)
@@ -114,8 +114,8 @@ func (db *TransactionDB) GetTransactionByID(ctx context.Context, id int) (*domai
 	var result domain.Transaction
 	row := bres.QueryRow()
 	err := row.Scan(&result.ID, &result.RequestID, &result.TerminalID, &result.PartnerObjectID, &result.AmountTotal,
-		&result.AmountOriginal, &result.CommisionPs, &result.CommisionClient, &result.CommisionProvider, &result.DateInput,
-		&result.DatePost, &result.Status, &result.PaymentType, &result.PaymentNumber, &result.ServiceID, &result.PayeeID,
+		&result.AmountOriginal, &result.CommisionPs, &result.CommisionClient, &result.CommisionProvider, &result.DateInput.Time,
+		&result.DatePost.Time, &result.Status, &result.PaymentType, &result.PaymentNumber, &result.ServiceID, &result.PayeeID,
 		&result.PayeeBankMfo, &result.PayeeBankAccount,
 	)
 	if err != nil {
@@ -211,8 +211,8 @@ func (db *TransactionDB) GetTransactions(ctx context.Context, filters map[string
 		cur := domain.Transaction{}
 		err = rows.Scan(
 			&cur.ID, &cur.RequestID, &cur.TerminalID, &cur.PartnerObjectID, &cur.AmountTotal,
-			&cur.AmountOriginal, &cur.CommisionPs, &cur.CommisionClient, &cur.CommisionProvider, &cur.DateInput,
-			&cur.DatePost, &cur.Status, &cur.PaymentType, &cur.PaymentNumber, &cur.ServiceID, &cur.Service, &cur.PayeeID,
+			&cur.AmountOriginal, &cur.CommisionPs, &cur.CommisionClient, &cur.CommisionProvider, &cur.DateInput.Time,
+			&cur.DatePost.Time, &cur.Status, &cur.PaymentType, &cur.PaymentNumber, &cur.ServiceID, &cur.Service, &cur.PayeeID,
 			&cur.PayeeName, &cur.PayeeBankMfo, &cur.PayeeBankAccount, &cur.PaymentNarrative,
 		)
 		result = append(result, cur)
