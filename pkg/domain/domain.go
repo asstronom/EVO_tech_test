@@ -14,7 +14,7 @@ func (date *DateTime) UnmarshalCSV(csv string) (err error) {
 }
 
 func (date *DateTime) MarshalJSON() ([]byte, error) {
-	return []byte(`"` + date.String() + `"`), nil
+	return []byte(`"` + date.Format(layout) + `"`), nil
 }
 
 type Transaction struct {
