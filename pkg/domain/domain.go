@@ -2,17 +2,6 @@ package domain
 
 import "time"
 
-const layout = "2006-01-02 15:04:05"
-
-type DateTime struct {
-	time.Time
-}
-
-func (date *DateTime) UnmarshalCSV(csv string) (err error) {
-	date.Time, err = time.Parse(layout, csv)
-	return err
-}
-
 type Transaction struct {
 	ID                int
 	RequestID         int
