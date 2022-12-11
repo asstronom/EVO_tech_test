@@ -15,10 +15,10 @@ Example:
 ```curl
 curl -i -X POST http://localhost:8000/upload -F "file=@example.csv" -H "Content-Type: multipart/form-data"
 ```
-To get transaction by ID use ```GET /transactions/id```.    
+To get transaction by ID use ```GET /transaction/id```.    
 Example:
 ```curl
-curl -i -X GET http://localhost:8000/transactions/1 
+curl -i -X GET http://localhost:8000/transaction/1 
 ```
 To get transactions with filters use ```GET /transactions?filter1=value1&filter2=value2```
 Available filters:
