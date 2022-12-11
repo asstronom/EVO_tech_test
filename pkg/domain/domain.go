@@ -1,6 +1,9 @@
 package domain
 
-import "time"
+import (
+	"context"
+	"time"
+)
 
 const layout = "2006-01-02 15:04:05"
 
@@ -39,4 +42,10 @@ type Transaction struct {
 	PayeeBankMfo      int      `csv:"PayeeBankMfo"`
 	PayeeBankAccount  string   `csv:"PayeeBankAccount"`
 	PaymentNarrative  string   `csv:"PaymentNarrative"`
+}
+
+type TransactionService interface {
+	GetTransactionByID(ctx context.Context, id int) (*Transaction, error)
+	GetTransactions(ctx context.Context, filters map[string]interface{}) ([]Transaction, error)
+	InsertTransactions(ctx context.Context, trxs []Transaction) error
 }
