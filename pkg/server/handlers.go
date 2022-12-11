@@ -6,11 +6,13 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"os"
 	"strconv"
 	"strings"
 
 	"github.com/asstronom/EVO_tech_test/pkg/parse"
 	"github.com/gin-gonic/gin"
+	"github.com/google/uuid"
 )
 
 // handler that returns transactions with applied filters
@@ -73,18 +75,33 @@ func (srv *Server) transactions(c *gin.Context) {
 	if ok {
 		filters["payment_narrative"] = payment_narrative
 	}
-	//running database query
-	trxs, err := srv.service.GetTransactions(context.Background(), filters)
-	if err != nil {
-		c.String(http.StatusNotFound, "error getting transactions: ", err)
-		return
-	}
+
 	switch c.Param("encoding") {
 	case "/csv":
-
+		fileid := uuid.New()
+		file, err := os.Create(fileid.String())
+		if err != nil {
+			c.String(http.StatusInternalServerError, "error creating file")
+		}
+		defer os.Remove(fileid.String())
+		defer file.Close()
+		srv.service.ReadTransactions(context.Background(), file, filters)
+		c.File(fileid.String())
 	case "/json":
+		//running database query
+		trxs, err := srv.service.GetTransactions(context.Background(), filters)
+		if err != nil {
+			c.String(http.StatusNotFound, "error getting transactions: ", err)
+			return
+		}
 		c.IndentedJSON(http.StatusOK, trxs)
 	default:
+		//running database query
+		trxs, err := srv.service.GetTransactions(context.Background(), filters)
+		if err != nil {
+			c.String(http.StatusNotFound, "error getting transactions: ", err)
+			return
+		}
 		c.IndentedJSON(http.StatusOK, trxs)
 	}
 }
