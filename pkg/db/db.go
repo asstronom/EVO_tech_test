@@ -64,31 +64,28 @@ func (db *TransactionDB) InsertTransactions(ctx context.Context, trxs []domain.T
 	pages := int(math.Ceil(float64(len(trxs)) / 100))
 	log.Println("len trxs:", len(trxs))
 	log.Println("pages:", pages)
-	for i := 0; i < pages; i++ {
-		log.Println("batch number:", i)
-		b := pgx.Batch{}
-		for j := 0; j < 100 && j+i*100 < len(trxs); j++ {
-			trx := trxs[i*100+j]
-			b.Queue(`INSERT INTO transactions (id, requestid, terminalid, partnerobjectid,
+	b := pgx.Batch{}
+	for i := range trxs {
+		trx := trxs[i]
+		b.Queue(`INSERT INTO transactions (id, requestid, terminalid, partnerobjectid,
 		 amounttotal, amountoriginal, commisionps, commisionclient, commisionprovider,
 		 dateinput, datepost, statusid, paymenttype, paymentnumber, serviceid,
 		 servicetypeid, payeeid, payeenameid, payeebankmfo, payeebankaccount, paymentnarrativeid)
 		 VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, (SELECT id FROM servicetypes WHERE title=$16),
 		 $17, (SELECT id FROM payeenames WHERE title=$18), $19, $20, (SELECT id FROM paymentnarratives WHERE title=$21))`,
-				trx.ID, trx.RequestID, trx.TerminalID, trx.PartnerObjectID, trx.AmountTotal, trx.AmountOriginal, trx.CommisionPs, trx.CommisionClient, trx.CommisionProvider,
-				trx.DateInput.Time, trx.DatePost.Time, trx.Status, trx.PaymentType, trx.PaymentNumber, trx.ServiceID, trx.Service, trx.PayeeID, trx.PayeeName, trx.PayeeBankMfo,
-				trx.PayeeBankAccount, trx.PaymentNarrative)
+			trx.ID, trx.RequestID, trx.TerminalID, trx.PartnerObjectID, trx.AmountTotal, trx.AmountOriginal, trx.CommisionPs, trx.CommisionClient, trx.CommisionProvider,
+			trx.DateInput.Time, trx.DatePost.Time, trx.Status, trx.PaymentType, trx.PaymentNumber, trx.ServiceID, trx.Service, trx.PayeeID, trx.PayeeName, trx.PayeeBankMfo,
+			trx.PayeeBankAccount, trx.PaymentNarrative)
+	}
+	bres := db.pool.SendBatch(ctx, &b)
+	err := bres.Close()
+	if err != nil {
+		var pgErr *pgconn.PgError
+		if errors.As(err, &pgErr) && pgErr.Code == "23505" {
+			return fmt.Errorf("duplicate data")
 		}
-		bres := db.pool.SendBatch(ctx, &b)
-		err := bres.Close()
-		if err != nil {
-			var pgErr *pgconn.PgError
-			if errors.As(err, &pgErr) && pgErr.Code == "23505" {
-				return fmt.Errorf("duplicate data")
-			}
-			return fmt.Errorf("error sending batch: %w", err)
+		return fmt.Errorf("error sending batch: %w", err)
 
-		}
 	}
 	return nil
 }
