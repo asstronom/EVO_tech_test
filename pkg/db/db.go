@@ -177,8 +177,8 @@ func (db *TransactionDB) GetTransactions(ctx context.Context, filters map[string
 	if err != nil {
 		return nil, fmt.Errorf("error converting selectbuilder to string: %w", err)
 	}
-	fmt.Println(sql)
-	fmt.Println(args)
+	//fmt.Println(sql)
+	//fmt.Println(args)
 
 	//use filtered transactions AS t
 	withClause := "WITH t AS (\n" + sql + "\n)\n"
