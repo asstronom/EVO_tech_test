@@ -112,12 +112,7 @@ func (srv *Server) uploadCSV(c *gin.Context) {
 		c.String(http.StatusInternalServerError, "error opening file: %s", err)
 		return
 	}
-	trxs, err := parse.ParseCSVFile(file)
-	if err != nil {
-		c.String(http.StatusInternalServerError, "error parsing file: %s", err)
-		return
-	}
-	err = srv.service.InsertTransactions(context.Background(), trxs)
+	err = srv.service.InsertTransactions(context.Background(), file)
 	if err != nil {
 		c.String(http.StatusInternalServerError, "error inserting data: %s", err)
 		return
