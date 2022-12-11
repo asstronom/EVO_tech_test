@@ -13,7 +13,7 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-//handler that returns transactions with applied filters
+// handler that returns transactions with applied filters
 func (srv *Server) transactions(c *gin.Context) {
 	//retrieving filters
 	filters := make(map[string]interface{}, 5)
@@ -52,7 +52,7 @@ func (srv *Server) transactions(c *gin.Context) {
 	if ok {
 		date_from = strings.ReplaceAll(date_from, "T", " ")
 		date, err := parse.ParseDate(date_from)
-		if err != nil {	
+		if err != nil {
 			c.String(http.StatusBadRequest, fmt.Sprintf("wrong syntaxis of date_post_from: %s", err))
 			return
 		}
@@ -74,7 +74,7 @@ func (srv *Server) transactions(c *gin.Context) {
 		filters["payment_narrative"] = payment_narrative
 	}
 	//running database query
-	trxs, err := srv.db.GetTransactions(context.Background(), filters)
+	trxs, err := srv.service.GetTransactions(context.Background(), filters)
 	if err != nil {
 		c.String(http.StatusNotFound, "error getting transactions: ", err)
 		return
@@ -82,7 +82,7 @@ func (srv *Server) transactions(c *gin.Context) {
 	c.IndentedJSON(http.StatusOK, trxs)
 }
 
-//handler that returns transaction by its id
+// handler that returns transaction by its id
 func (srv *Server) transactionByID(c *gin.Context) {
 	id, err := strconv.Atoi(c.Param("id"))
 	if err != nil {
@@ -91,14 +91,15 @@ func (srv *Server) transactionByID(c *gin.Context) {
 			return
 		}
 	}
-	trx, err := srv.db.GetTransactionByID(context.Background(), id)
+	trx, err := srv.service.GetTransactionByID(context.Background(), id)
 	if err != nil {
 		c.String(http.StatusNotFound, "error getting trx: %s", err)
 		return
 	}
 	c.IndentedJSON(http.StatusOK, trx)
 }
-//handler that recieves csv file, parses it and stores data in db
+
+// handler that recieves csv file, parses it and stores data in db
 func (srv *Server) uploadCSV(c *gin.Context) {
 	fileh, err := c.FormFile("file")
 	if err != nil {
@@ -116,7 +117,7 @@ func (srv *Server) uploadCSV(c *gin.Context) {
 		c.String(http.StatusInternalServerError, "error parsing file: %s", err)
 		return
 	}
-	err = srv.db.InsertTransactions(context.Background(), trxs)
+	err = srv.service.InsertTransactions(context.Background(), trxs)
 	if err != nil {
 		c.String(http.StatusInternalServerError, "error inserting data: %s", err)
 		return
