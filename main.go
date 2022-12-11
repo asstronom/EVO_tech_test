@@ -9,6 +9,7 @@ import (
 	"github.com/asstronom/EVO_tech_test/pkg/db"
 	"github.com/asstronom/EVO_tech_test/pkg/migratedb"
 	"github.com/asstronom/EVO_tech_test/pkg/server"
+	"github.com/asstronom/EVO_tech_test/pkg/service"
 )
 
 func main() {
@@ -28,7 +29,11 @@ func main() {
 	if err != nil {
 		log.Fatalln(err)
 	}
-	srv, err := server.NewServer(trdb)
+	service, err := service.NewService(trdb)
+	if err != nil {
+		log.Fatalln("error starting service")
+	}
+	srv, err := server.NewServer(service)
 	if err != nil {
 		log.Fatalln("error starting server", err)
 	}
