@@ -79,7 +79,14 @@ func (srv *Server) transactions(c *gin.Context) {
 		c.String(http.StatusNotFound, "error getting transactions: ", err)
 		return
 	}
-	c.IndentedJSON(http.StatusOK, trxs)
+	switch c.Param("encoding") {
+	case "/csv":
+
+	case "/json":
+		c.IndentedJSON(http.StatusOK, trxs)
+	default:
+		c.IndentedJSON(http.StatusOK, trxs)
+	}
 }
 
 // handler that returns transaction by its id

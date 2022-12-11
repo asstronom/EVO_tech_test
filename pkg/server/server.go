@@ -28,7 +28,7 @@ func (srv *Server) Run(port string) error {
 
 // add endpoints to router
 func (srv *Server) initEndpoints() {
-	srv.router.GET("/transactions/:id", srv.transactionByID)
+	srv.router.GET("/transactions/:id/*encoding", srv.transactionByID)
 	srv.router.GET("/transactions", srv.transactions)
 	srv.router.POST("/upload", srv.uploadCSV)
 }
