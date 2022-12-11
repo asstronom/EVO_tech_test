@@ -2,9 +2,16 @@ package service
 
 import (
 	"context"
+	"fmt"
+	"io"
 
 	"github.com/asstronom/EVO_tech_test/pkg/db"
 	"github.com/asstronom/EVO_tech_test/pkg/domain"
+	"github.com/gocarina/gocsv"
+)
+
+const (
+	batchSize = 20
 )
 
 type Service struct {
@@ -31,6 +38,30 @@ func (s *Service) GetTransactions(ctx context.Context, filters map[string]interf
 	return trxs, err
 }
 
-func (s *Service) InsertTransactions(ctx context.Context, trxs []domain.Transaction) error {
-	return s.db.InsertTransactions(ctx, trxs)
+func (s *Service) InsertTransactions(ctx context.Context, trxs io.Reader) error {
+	//recieve values one by one using channel
+	trxchan := make(chan domain.Transaction)
+	go gocsv.UnmarshalToChan(trxs, trxchan)
+
+	//send transactions in batches
+	transactions := make([]domain.Transaction, 0, batchSize)
+	for trx := range trxchan {
+		transactions = append(transactions, trx)
+		//if batch is full - send it
+		if len(transactions) == batchSize {
+			err := s.db.InsertTransactions(ctx, transactions)
+			if err != nil {
+				return fmt.Errorf("error inserting transactions: %w", err)
+			}
+			transactions = transactions[:0]
+		}
+	}
+	//send leftovers
+	if len(transactions) != 0 {
+		err := s.db.InsertTransactions(ctx, transactions)
+		if err != nil {
+			return fmt.Errorf("error inserting leftover transactions: %w", err)
+		}
+	}
+	return nil
 }
