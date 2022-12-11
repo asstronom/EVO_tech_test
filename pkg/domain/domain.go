@@ -49,4 +49,5 @@ type TransactionService interface {
 	GetTransactionByID(ctx context.Context, id int) (*Transaction, error)
 	GetTransactions(ctx context.Context, filters map[string]interface{}) ([]Transaction, error)
 	InsertTransactions(ctx context.Context, trxs io.Reader) error
+	ReadTransactions(ctx context.Context, out io.Writer, filters map[string]interface{}) error
 }
