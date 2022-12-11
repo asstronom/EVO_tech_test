@@ -11,7 +11,7 @@ import (
 )
 
 const (
-	batchSize = 20
+	batchSize = 40
 )
 
 type Service struct {
