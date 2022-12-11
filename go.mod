@@ -45,6 +45,7 @@ require (
 	github.com/gin-gonic/gin v1.8.1
 	github.com/golang-migrate/migrate/v4 v4.15.2
 	github.com/google/go-cmp v0.5.9 // indirect
+	github.com/google/uuid v1.3.0
 	github.com/jackc/pgx/v4 v4.17.2
 	golang.org/x/crypto v0.1.0 // indirect
 	golang.org/x/text v0.4.0 // indirect
