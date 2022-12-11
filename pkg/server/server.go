@@ -3,14 +3,14 @@ package server
 import (
 	"fmt"
 
-	"github.com/asstronom/EVO_tech_test/pkg/db"
+	"github.com/asstronom/EVO_tech_test/pkg/domain"
 	"github.com/asstronom/EVO_tech_test/pkg/parse"
 	"github.com/gin-gonic/gin"
 )
 
 type Server struct {
-	router *gin.Engine
-	db     *db.TransactionDB
+	router  *gin.Engine
+	service domain.TransactionService
 }
 
 // run server
@@ -34,9 +34,9 @@ func (srv *Server) initEndpoints() {
 }
 
 // create server
-func NewServer(db *db.TransactionDB) (*Server, error) {
+func NewServer(service domain.TransactionService) (*Server, error) {
 	router := gin.Default()
-	srv := Server{router: router, db: db}
+	srv := Server{router: router, service: service}
 	srv.initEndpoints()
 	return &srv, nil
 }
