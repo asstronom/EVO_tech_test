@@ -78,15 +78,15 @@ func (srv *Server) transactions(c *gin.Context) {
 
 	switch c.Param("encoding") {
 	case "/csv":
-		fileid := uuid.New()
-		file, err := os.Create(fileid.String())
+		filename := uuid.New().String() + ".csv"
+		file, err := os.Create(filename)
 		if err != nil {
 			c.String(http.StatusInternalServerError, "error creating file")
 		}
-		defer os.Remove(fileid.String())
+		defer os.Remove(filename)
 		defer file.Close()
 		srv.service.ReadTransactions(context.Background(), file, filters)
-		c.File(fileid.String())
+		c.File(filename)
 	case "/json":
 		//running database query
 		trxs, err := srv.service.GetTransactions(context.Background(), filters)
