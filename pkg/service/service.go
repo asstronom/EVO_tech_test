@@ -38,6 +38,18 @@ func (s *Service) GetTransactions(ctx context.Context, filters map[string]interf
 	return trxs, err
 }
 
+func (s *Service) ReadTransactions(ctx context.Context, out io.Writer, filters map[string]interface{}) error {
+	trxs, err := s.db.GetTransactions(ctx, filters)
+	if err != nil {
+		return fmt.Errorf("error getting transactions: %w", err)
+	}
+	err = gocsv.Marshal(trxs, out)
+	if err != nil {
+		return fmt.Errorf("error marshaling transactions to csv: %w", err)
+	}
+	return nil
+}
+
 func (s *Service) InsertTransactions(ctx context.Context, trxs io.Reader) error {
 	//recieve values one by one using channel
 	trxchan := make(chan domain.Transaction)
