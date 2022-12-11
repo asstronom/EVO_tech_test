@@ -2,6 +2,7 @@ package domain
 
 import (
 	"context"
+	"io"
 	"time"
 )
 
@@ -47,5 +48,5 @@ type Transaction struct {
 type TransactionService interface {
 	GetTransactionByID(ctx context.Context, id int) (*Transaction, error)
 	GetTransactions(ctx context.Context, filters map[string]interface{}) ([]Transaction, error)
-	InsertTransactions(ctx context.Context, trxs []Transaction) error
+	InsertTransactions(ctx context.Context, trxs io.Reader) error
 }
